@@ -1,0 +1,5 @@
+Number,Name,Class Name,Type,Description,Solution,Image Link,Plant Name
+1,Bacterial Leaf Spot,bacterial-leaf-spot,bacterial,Bacterial leaf spot causes small dark spots on leaves,Remove infected leaves; Apply copper fungicide; Improve air circulation,https://example.com/bacterial1.jpg; https://example.com/bacterial2.jpg,Apple
+2,Powdery Mildew,powdery-mildew,fungal,White powdery coating on leaves and stems,Increase air circulation; Apply sulfur fungicide; Remove infected parts,https://example.com/powdery1.jpg,Tomato
+3,Root Rot,root-rot,fungal,Fungal infection affecting plant roots,Improve drainage; Reduce watering; Apply fungicide to soil,https://example.com/rootrot1.jpg,Pepper
+4,Aphid Infestation,aphid-infestation,pest,Small insects sucking plant sap,Spray with insecticidal soap; Introduce beneficial insects; Remove heavily infested leaves,https://example.com/aphid1.jpg; https://example.com/aphid2.jpg,Lettuce
