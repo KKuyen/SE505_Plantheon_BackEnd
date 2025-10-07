@@ -93,6 +93,50 @@ func SearchDiseases(keyword string, offset, limit int) ([]Disease, int64, error)
 	return diseases, total, err
 }
 
+// GetAllDiseasesWithoutPagination gets all diseases without pagination
+func GetAllDiseasesWithoutPagination() ([]Disease, error) {
+	var diseases []Disease
+	err := common.GetDB().Find(&diseases).Error
+	return diseases, err
+}
+
+// GetAllDiseasesByTypeWithoutPagination gets all diseases by type without pagination
+func GetAllDiseasesByTypeWithoutPagination(diseaseType string) ([]Disease, error) {
+	var diseases []Disease
+	err := common.GetDB().Where("type = ?", diseaseType).Find(&diseases).Error
+	return diseases, err
+}
+
+// SearchAllDiseases searches all diseases by name or description without pagination
+func SearchAllDiseases(keyword string) ([]Disease, error) {
+	var diseases []Disease
+	searchQuery := "%" + keyword + "%"
+	err := common.GetDB().Where("name ILIKE ? OR description ILIKE ?", searchQuery, searchQuery).Find(&diseases).Error
+	return diseases, err
+}
+
+// GetDiseasesCount gets total count of diseases
+func GetDiseasesCount() (int64, error) {
+	var count int64
+	err := common.GetDB().Model(&Disease{}).Count(&count).Error
+	return count, err
+}
+
+// GetDiseasesCountByType gets count of diseases by type
+func GetDiseasesCountByType(diseaseType string) (int64, error) {
+	var count int64
+	err := common.GetDB().Model(&Disease{}).Where("type = ?", diseaseType).Count(&count).Error
+	return count, err
+}
+
+// SearchDiseasesCount gets count of diseases matching search keyword
+func SearchDiseasesCount(keyword string) (int64, error) {
+	var count int64
+	searchQuery := "%" + keyword + "%"
+	err := common.GetDB().Model(&Disease{}).Where("name ILIKE ? OR description ILIKE ?", searchQuery, searchQuery).Count(&count).Error
+	return count, err
+}
+
 // GetDiseaseByClassName gets disease by class name
 func GetDiseaseByClassName(className string) (*Disease, error) {
 	var disease Disease

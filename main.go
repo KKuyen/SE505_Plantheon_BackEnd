@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"plantheon-backend/activities"
 	"plantheon-backend/common"
 	"plantheon-backend/diseases"
 	"plantheon-backend/users"
@@ -22,7 +23,7 @@ func main() {
 	db := common.Init()
 
 	// Auto migrate database tables
-	err := db.AutoMigrate(&users.User{}, &diseases.Disease{})
+	err := db.AutoMigrate(&users.User{}, &diseases.Disease{}, &activities.Activity{})
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
@@ -86,6 +87,8 @@ func main() {
 		{
 			// Public routes (anyone can view diseases)
 			diseaseRoutes.GET("", diseases.GetDiseases)
+			diseaseRoutes.GET("/all", diseases.GetAllDiseasesHandler)
+			diseaseRoutes.GET("/count", diseases.GetDiseasesCountHandler)
 			// diseaseRoutes.GET("/:id", diseases.GetDisease)
 			diseaseRoutes.GET("/:ClassName", diseases.GetDiseaseByClassNameHandler)
 		}
@@ -98,6 +101,28 @@ func main() {
 			adminDiseaseRoutes.POST("/import-excel", diseases.ImportDiseasesFromExcelHandler)
 			adminDiseaseRoutes.PUT("/:id", diseases.UpdateDiseaseHandler)
 			adminDiseaseRoutes.DELETE("/:ClassName", diseases.DeleteDiseaseHandler)
+		}
+
+		// Activity routes
+		activityRoutes := api.Group("/activities")
+		{
+			// Public routes (anyone can view activities)
+			activityRoutes.GET("", activities.GetActivities)
+			activityRoutes.GET("/all", activities.GetAllActivitiesHandler)
+			activityRoutes.GET("/count", activities.GetActivitiesCountHandler)
+			activityRoutes.GET("/get-activites-by-month", activities.GetActivitiesCalendarByMonthHandler)
+			activityRoutes.GET("/by-day", activities.GetActivitiesByDayHandler)
+			activityRoutes.GET("/:id", activities.GetActivity)
+			activityRoutes.POST("", activities.CreateActivityHandler)
+			activityRoutes.PUT("/:id", activities.UpdateActivityHandler)
+			activityRoutes.DELETE("/:id", activities.DeleteActivityHandler)
+		}
+
+		// Admin-only activity routes (require admin role)
+		adminActivityRoutes := api.Group("/activities")
+		adminActivityRoutes.Use(users.RequireAdmin())
+		{
+			
 		}
 	}
 
@@ -118,6 +143,8 @@ func main() {
 	log.Printf("  PUT  /api/users/profile - Cập nhật profile")
 	log.Printf("Disease routes (public):")
 	log.Printf("  GET  /api/diseases - Xem danh sách bệnh (có pagination, search, filter)")
+	log.Printf("  GET  /api/diseases/all - Xem tất cả bệnh (không pagination)")
+	log.Printf("  GET  /api/diseases/count - Xem số lượng bệnh")
 	log.Printf("  GET  /api/diseases/:id - Xem chi tiết bệnh")
 	log.Printf("  GET  /api/diseases/class/:className - Xem bệnh theo class name")
 	log.Printf("Disease routes (cần admin role):")
@@ -125,6 +152,15 @@ func main() {
 	log.Printf("  POST /api/diseases/import-excel - Import nhiều bệnh từ Excel")
 	log.Printf("  PUT  /api/diseases/:id - Cập nhật bệnh")
 	log.Printf("  DELETE /api/diseases/:ClassName - Xóa bệnh")
+	log.Printf("Activity routes (public):")
+	log.Printf("  GET  /api/activities - Xem danh sách hoạt động (có pagination, search, filter)")
+	log.Printf("  GET  /api/activities/all - Xem tất cả hoạt động (không pagination)")
+	log.Printf("  GET  /api/activities/count - Xem số lượng hoạt động")
+	log.Printf("  GET  /api/activities/:id - Xem chi tiết hoạt động")
+	log.Printf("Activity routes (cần admin role):")
+	log.Printf("  POST /api/activities - Tạo hoạt động mới")
+	log.Printf("  PUT  /api/activities/:id - Cập nhật hoạt động")
+	log.Printf("  DELETE /api/activities/:id - Xóa hoạt động")
 	log.Printf("Admin routes (cần admin role):")
 	log.Printf("  /api/admin/users/* - Quản lý người dùng (commented out)")
 

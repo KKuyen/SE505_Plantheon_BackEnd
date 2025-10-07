@@ -131,6 +131,88 @@ func GetDiseases(c *gin.Context) {
 	})
 }
 
+// GetAllDiseasesHandler handles getting all diseases without pagination
+func GetAllDiseasesHandler(c *gin.Context) {
+	// Parse query parameters for filtering
+	diseaseType := c.Query("type")
+	search := c.Query("search")
+
+	var diseases []Disease
+	var total int64
+	var err error
+
+	// Handle different query types and get count
+	if search != "" {
+		diseases, err = SearchAllDiseases(search)
+		if err == nil {
+			total = int64(len(diseases))
+		}
+	} else if diseaseType != "" {
+		diseases, err = GetAllDiseasesByTypeWithoutPagination(diseaseType)
+		if err == nil {
+			total = int64(len(diseases))
+		}
+	} else {
+		diseases, err = GetAllDiseasesWithoutPagination()
+		if err == nil {
+			total = int64(len(diseases))
+		}
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get diseases",
+		})
+		return
+	}
+
+	// Convert to response format
+	var response []DiseaseResponse
+	for _, disease := range diseases {
+		response = append(response, disease.ToDiseaseResponse())
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": gin.H{
+			"diseases": response,
+			"total":    total,
+			"count":    len(response),
+		},
+	})
+}
+
+// GetDiseasesCountHandler handles getting diseases count only
+func GetDiseasesCountHandler(c *gin.Context) {
+	// Parse query parameters for filtering
+	diseaseType := c.Query("type")
+	search := c.Query("search")
+
+	var count int64
+	var err error
+
+	// Handle different query types
+	if search != "" {
+		count, err = SearchDiseasesCount(search)
+	} else if diseaseType != "" {
+		count, err = GetDiseasesCountByType(diseaseType)
+	} else {
+		count, err = GetDiseasesCount()
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get diseases count",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": gin.H{
+			"count": count,
+		},
+	})
+}
+
 // UpdateDiseaseHandler handles disease update
 func UpdateDiseaseHandler(c *gin.Context) {
 	id := c.Param("id")
