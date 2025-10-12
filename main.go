@@ -4,11 +4,10 @@ import (
 	"log"
 	"os"
 
-	"plantheon-backend/activities"
 	"plantheon-backend/common"
-	"plantheon-backend/diseases"
-	"plantheon-backend/users"
-
+	"plantheon-backend/models/activities"
+	"plantheon-backend/models/diseases"
+	"plantheon-backend/models/users"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )

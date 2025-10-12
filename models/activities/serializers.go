@@ -10,13 +10,14 @@ type ActivityResponse struct {
 	Description     *string    `json:"description"`
 	Description2    *string    `json:"description2"`
 	Description3    *string    `json:"description3"`
-	TimeStart       *time.Time `json:"time_start"`
-	TimeEnd         *time.Time `json:"time_end"`
-	Day             *time.Time `json:"day"`
+    TimeStart       *time.Time `json:"time_start"`
+    TimeEnd         *time.Time `json:"time_end"`
+    Day             *bool      `json:"day"`
 	Money           *float64   `json:"money"`
     Type            string     `json:"type"`
 	Title           string     `json:"title"`
 	IsRepeat        *string    `json:"is_repeat"`
+    Repeat          *string    `json:"repeat"`
 	EndRepeatDay    *time.Time `json:"end_repeat_day"`
 	AlertTime       *string    `json:"alert_time"`
 	Object          *string    `json:"object"`
@@ -40,9 +41,10 @@ type ActivityCalendarItem struct {
 type ActivityDayItem struct {
     ID        string     `json:"id"`
     Title     string     `json:"title"`
+    Type      string     `json:"type"`
     TimeStart *time.Time `json:"time_start"`
     TimeEnd   *time.Time `json:"time_end"`
-    Day       *time.Time `json:"day"`
+    Day       *bool      `json:"day"`
 }
 
 // Calendar day item
@@ -56,13 +58,14 @@ type CreateActivityRequest struct {
 	Description     *string    `json:"description"`
 	Description2    *string    `json:"description2"`
 	Description3    *string    `json:"description3"`
-	TimeStart       *time.Time `json:"time_start"`
-	TimeEnd         *time.Time `json:"time_end"`
-	Day             *time.Time `json:"day"`
+    TimeStart       *time.Time `json:"time_start"`
+    TimeEnd         *time.Time `json:"time_end"`
+    Day             *bool      `json:"day"`
 	Money           *float64   `json:"money"`
     Type            string     `json:"type" binding:"required"`
 	Title           string     `json:"title" binding:"required"`
 	IsRepeat        *string    `json:"is_repeat"`
+    Repeat          *string    `json:"repeat"`
 	EndRepeatDay    *time.Time `json:"end_repeat_day"`
 	AlertTime       *string    `json:"alert_time"`
 	Object          *string    `json:"object"`
@@ -80,13 +83,14 @@ type UpdateActivityRequest struct {
 	Description     *string    `json:"description"`
 	Description2    *string    `json:"description2"`
 	Description3    *string    `json:"description3"`
-	TimeStart       *time.Time `json:"time_start"`
-	TimeEnd         *time.Time `json:"time_end"`
-	Day             *time.Time `json:"day"`
+    TimeStart       *time.Time `json:"time_start"`
+    TimeEnd         *time.Time `json:"time_end"`
+    Day             *bool      `json:"day"`
 	Money           *float64   `json:"money"`
 	Type            *string    `json:"type"`
 	Title           *string    `json:"title"`
 	IsRepeat        *string    `json:"is_repeat"`
+    Repeat          *string    `json:"repeat"`
 	EndRepeatDay    *time.Time `json:"end_repeat_day"`
 	AlertTime       *string    `json:"alert_time"`
 	Object          *string    `json:"object"`
@@ -121,7 +125,8 @@ func (a *Activity) ToActivityResponse() ActivityResponse {
 		Money:           a.Money,
 		Type:            a.Type,
 		Title:           a.Title,
-		IsRepeat:        a.IsRepeat,
+        IsRepeat:        a.IsRepeat,
+        Repeat:          a.Repeat,
 		EndRepeatDay:    a.EndRepeatDay,
 		AlertTime:       a.AlertTime,
 		Object:          a.Object,

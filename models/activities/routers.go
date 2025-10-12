@@ -39,6 +39,7 @@ func CreateActivityHandler(c *gin.Context) {
         Type:            req.Type,
 		Title:           req.Title,
 		IsRepeat:        req.IsRepeat,
+		Repeat:          req.Repeat,
 		EndRepeatDay:    req.EndRepeatDay,
 		AlertTime:       req.AlertTime,
 		Object:          req.Object,
@@ -222,7 +223,7 @@ func GetActivitiesCountHandler(c *gin.Context) {
 	})
 }
 
-// GetActivitiesByDayHandler returns all activities of a specific day (UTC) with minimal info
+// GetActivitiesByDayHandler returns all activities of a specific day (UTC) with full info
 // GET /api/v1/activities/by-day?date=YYYY-MM-DD
 func GetActivitiesByDayHandler(c *gin.Context) {
     dateStr := c.Query("date")
@@ -242,15 +243,9 @@ func GetActivitiesByDayHandler(c *gin.Context) {
         return
     }
 
-    var response []ActivityDayItem
+    var response []ActivityResponse
     for _, a := range activities {
-        response = append(response, ActivityDayItem{
-            ID:        a.ID,
-            Title:     a.Title,
-            TimeStart: a.TimeStart,
-            TimeEnd:   a.TimeEnd,
-            Day:       a.Day,
-        })
+        response = append(response, a.ToActivityResponse())
     }
 
     c.JSON(http.StatusOK, gin.H{
@@ -307,21 +302,10 @@ func GetActivitiesCalendarByMonthHandler(c *gin.Context) {
     }
 
     for _, a := range acts {
-        // Candidate dates from time_start and day (both in UTC)
         if a.TimeStart != nil {
             key := time.Date(a.TimeStart.UTC().Year(), a.TimeStart.UTC().Month(), a.TimeStart.UTC().Day(), 0, 0, 0, 0, time.UTC).Format("2006-01-02")
             if _, ok := dayMap[key]; ok {
-                dayMap[key] = append(dayMap[key], ActivityCalendarItem{
-                    Title: a.Title,
-                })
-            }
-        }
-        if a.Day != nil {
-            key := time.Date(a.Day.UTC().Year(), a.Day.UTC().Month(), a.Day.UTC().Day(), 0, 0, 0, 0, time.UTC).Format("2006-01-02")
-            if _, ok := dayMap[key]; ok {
-                dayMap[key] = append(dayMap[key], ActivityCalendarItem{
-                    Title: a.Title,
-                })
+                dayMap[key] = append(dayMap[key], ActivityCalendarItem{Title: a.Title})
             }
         }
     }
@@ -418,6 +402,9 @@ func UpdateActivityHandler(c *gin.Context) {
 	}
 	if req.IsRepeat != nil {
 		activity.IsRepeat = req.IsRepeat
+	}
+	if req.Repeat != nil {
+		activity.Repeat = req.Repeat
 	}
 	if req.EndRepeatDay != nil {
 		activity.EndRepeatDay = req.EndRepeatDay
