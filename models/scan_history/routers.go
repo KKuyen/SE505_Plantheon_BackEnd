@@ -42,3 +42,19 @@ func CreateScanHistoryHandler(c *gin.Context) {
 		"data":    scanHistory.ToScanHistoryResponse(),
 	})
 }
+
+// GetScanHistoriesHandler handles getting all scan histories
+func GetScanHistoriesHandler(c *gin.Context) {
+	scanHistories, err := GetAllScanHistories()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get scan histories",
+		})
+		return
+	}
+
+	response := ToScanHistoriesListResponse(scanHistories)
+	c.JSON(http.StatusOK, gin.H{
+		"data": response,
+	})
+}

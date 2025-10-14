@@ -130,6 +130,7 @@ func main() {
 		scanHistoryRoutes := api.Group("/scan-history")
 		scanHistoryRoutes.Use(users.AuthMiddleware())
 		{
+			scanHistoryRoutes.GET("", scan_history.GetScanHistoriesHandler)
 			scanHistoryRoutes.POST("", scan_history.CreateScanHistoryHandler)
 		}
 	}
@@ -170,6 +171,7 @@ func main() {
 	log.Printf("  PUT  /api/activities/:id - Cập nhật hoạt động")
 	log.Printf("  DELETE /api/activities/:id - Xóa hoạt động")
 	log.Printf("Scan History routes (cần token):")
+	log.Printf("  GET  /api/scan-history - Lấy tất cả lịch sử quét")
 	log.Printf("  POST /api/scan-history - Tạo lịch sử quét mới")
 	log.Printf("Admin routes (cần admin role):")
 	log.Printf("  /api/admin/users/* - Quản lý người dùng (commented out)")

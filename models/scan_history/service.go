@@ -2,6 +2,7 @@ package scan_history
 
 import (
 	"plantheon-backend/common"
+	"plantheon-backend/models/diseases"
 
 	"gorm.io/gorm"
 )
@@ -21,5 +22,58 @@ func NewScanHistoryService() *ScanHistoryService {
 // CreateScanHistoryRecord creates a new scan history
 func CreateScanHistoryRecord(scanHistory *ScanHistory) error {
 	service := NewScanHistoryService()
-	return service.db.Create(scanHistory).Error
+	if err := service.db.Create(scanHistory).Error; err != nil {
+		return err
+	}
+	
+	// Load disease details manually
+	var disease diseases.Disease
+	if err := service.db.Where("id = ?", scanHistory.DiseaseID).First(&disease).Error; err != nil {
+		return err
+	}
+	scanHistory.Disease = disease
+	
+	return nil
+}
+
+// GetAllScanHistories gets all scan histories with disease details
+func GetAllScanHistories() ([]ScanHistory, error) {
+	service := NewScanHistoryService()
+	var scanHistories []ScanHistory
+	
+	// Get scan histories first
+	if err := service.db.Order("created_at DESC").Find(&scanHistories).Error; err != nil {
+		return nil, err
+	}
+	
+	// Load disease details for each scan history
+	for i := range scanHistories {
+		var disease diseases.Disease
+		if err := service.db.Where("id = ?", scanHistories[i].DiseaseID).First(&disease).Error; err != nil {
+			return nil, err
+		}
+		scanHistories[i].Disease = disease
+	}
+	
+	return scanHistories, nil
+}
+
+// GetScanHistoryByID gets a scan history by ID with disease details
+func GetScanHistoryByID(id string) (*ScanHistory, error) {
+	service := NewScanHistoryService()
+	var scanHistory ScanHistory
+	
+	// Get scan history by ID
+	if err := service.db.Where("id = ?", id).First(&scanHistory).Error; err != nil {
+		return nil, err
+	}
+	
+	// Load disease details
+	var disease diseases.Disease
+	if err := service.db.Where("id = ?", scanHistory.DiseaseID).First(&disease).Error; err != nil {
+		return nil, err
+	}
+	scanHistory.Disease = disease
+	
+	return &scanHistory, nil
 }
