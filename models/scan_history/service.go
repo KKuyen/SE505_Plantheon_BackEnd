@@ -36,6 +36,26 @@ func CreateScanHistoryRecord(scanHistory *ScanHistory) error {
 	return nil
 }
 
+// GetScanHistoryByID gets a scan history by ID with disease details
+func GetScanHistoryByID(id string) (*ScanHistory, error) {
+	service := NewScanHistoryService()
+	var scanHistory ScanHistory
+	
+	// Get scan history by ID
+	if err := service.db.Where("id = ?", id).First(&scanHistory).Error; err != nil {
+		return nil, err
+	}
+	
+	// Load disease details
+	var disease diseases.Disease
+	if err := service.db.Where("id = ?", scanHistory.DiseaseID).First(&disease).Error; err != nil {
+		return nil, err
+	}
+	scanHistory.Disease = disease
+	
+	return &scanHistory, nil
+}
+
 // GetAllScanHistories gets all scan histories with disease details
 func GetAllScanHistories() ([]ScanHistory, error) {
 	service := NewScanHistoryService()
@@ -56,24 +76,4 @@ func GetAllScanHistories() ([]ScanHistory, error) {
 	}
 	
 	return scanHistories, nil
-}
-
-// GetScanHistoryByID gets a scan history by ID with disease details
-func GetScanHistoryByID(id string) (*ScanHistory, error) {
-	service := NewScanHistoryService()
-	var scanHistory ScanHistory
-	
-	// Get scan history by ID
-	if err := service.db.Where("id = ?", id).First(&scanHistory).Error; err != nil {
-		return nil, err
-	}
-	
-	// Load disease details
-	var disease diseases.Disease
-	if err := service.db.Where("id = ?", scanHistory.DiseaseID).First(&disease).Error; err != nil {
-		return nil, err
-	}
-	scanHistory.Disease = disease
-	
-	return &scanHistory, nil
 }

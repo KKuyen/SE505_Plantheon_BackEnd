@@ -131,6 +131,7 @@ func main() {
 		scanHistoryRoutes.Use(users.AuthMiddleware())
 		{
 			scanHistoryRoutes.GET("", scan_history.GetScanHistoriesHandler)
+			scanHistoryRoutes.GET("/:id", scan_history.GetScanHistoryByIDHandler)
 			scanHistoryRoutes.POST("", scan_history.CreateScanHistoryHandler)
 		}
 	}

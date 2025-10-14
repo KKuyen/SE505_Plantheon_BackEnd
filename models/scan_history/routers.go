@@ -58,3 +58,32 @@ func GetScanHistoriesHandler(c *gin.Context) {
 		"data": response,
 	})
 }
+
+// GetScanHistoryByIDHandler handles getting a scan history by ID
+func GetScanHistoryByIDHandler(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "ID is required",
+		})
+		return
+	}
+
+	scanHistory, err := GetScanHistoryByID(id)
+	if err != nil {
+		if err.Error() == "record not found" {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Scan history not found",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get scan history",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": scanHistory.ToScanHistoryResponse(),
+	})
+}
