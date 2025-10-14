@@ -133,6 +133,8 @@ func main() {
 			scanHistoryRoutes.GET("", scan_history.GetScanHistoriesHandler)
 			scanHistoryRoutes.GET("/:id", scan_history.GetScanHistoryByIDHandler)
 			scanHistoryRoutes.POST("", scan_history.CreateScanHistoryHandler)
+			scanHistoryRoutes.DELETE("", scan_history.DeleteAllScanHistoriesHandler)
+			scanHistoryRoutes.DELETE("/:id", scan_history.DeleteScanHistoryByIDHandler)
 		}
 	}
 
@@ -173,7 +175,10 @@ func main() {
 	log.Printf("  DELETE /api/activities/:id - Xóa hoạt động")
 	log.Printf("Scan History routes (cần token):")
 	log.Printf("  GET  /api/scan-history - Lấy tất cả lịch sử quét")
+	log.Printf("  GET  /api/scan-history/:id - Lấy chi tiết lịch sử quét theo ID")
 	log.Printf("  POST /api/scan-history - Tạo lịch sử quét mới")
+	log.Printf("  DELETE /api/scan-history - Xóa tất cả lịch sử quét")
+	log.Printf("  DELETE /api/scan-history/:id - Xóa lịch sử quét theo ID")
 	log.Printf("Admin routes (cần admin role):")
 	log.Printf("  /api/admin/users/* - Quản lý người dùng (commented out)")
 

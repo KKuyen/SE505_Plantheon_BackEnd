@@ -87,3 +87,47 @@ func GetScanHistoryByIDHandler(c *gin.Context) {
 		"data": scanHistory.ToScanHistoryResponse(),
 	})
 }
+
+// DeleteScanHistoryByIDHandler handles deleting a scan history by ID
+func DeleteScanHistoryByIDHandler(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "ID is required",
+		})
+		return
+	}
+
+	err := DeleteScanHistoryByID(id)
+	if err != nil {
+		if err.Error() == "record not found" {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Scan history not found",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to delete scan history",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Scan history deleted successfully",
+	})
+}
+
+// DeleteAllScanHistoriesHandler handles deleting all scan histories
+func DeleteAllScanHistoriesHandler(c *gin.Context) {
+	err := DeleteAllScanHistories()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to delete all scan histories",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "All scan histories deleted successfully",
+	})
+}

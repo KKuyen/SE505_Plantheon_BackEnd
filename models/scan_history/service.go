@@ -77,3 +77,33 @@ func GetAllScanHistories() ([]ScanHistory, error) {
 	
 	return scanHistories, nil
 }
+
+// DeleteScanHistoryByID deletes a scan history by ID
+func DeleteScanHistoryByID(id string) error {
+	service := NewScanHistoryService()
+	
+	// Check if scan history exists before deleting
+	var scanHistory ScanHistory
+	if err := service.db.Where("id = ?", id).First(&scanHistory).Error; err != nil {
+		return err
+	}
+	
+	// Delete the scan history
+	if err := service.db.Delete(&scanHistory).Error; err != nil {
+		return err
+	}
+	
+	return nil
+}
+
+// DeleteAllScanHistories deletes all scan histories
+func DeleteAllScanHistories() error {
+	service := NewScanHistoryService()
+	
+	// Delete all scan histories
+	if err := service.db.Where("1 = 1").Delete(&ScanHistory{}).Error; err != nil {
+		return err
+	}
+	
+	return nil
+}
