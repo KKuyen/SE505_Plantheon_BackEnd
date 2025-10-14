@@ -7,7 +7,9 @@ import (
 	"plantheon-backend/common"
 	"plantheon-backend/models/activities"
 	"plantheon-backend/models/diseases"
+	"plantheon-backend/models/scan_history"
 	"plantheon-backend/models/users"
+
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -22,7 +24,7 @@ func main() {
 	db := common.Init()
 
 	// Auto migrate database tables
-	err := db.AutoMigrate(&users.User{}, &diseases.Disease{}, &activities.Activity{})
+	err := db.AutoMigrate(&users.User{}, &diseases.Disease{}, &activities.Activity{}, &scan_history.ScanHistory{})
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
@@ -123,12 +125,19 @@ func main() {
 		{
 			
 		}
+
+		// Scan History routes (protected - users can manage their own scan history)
+		scanHistoryRoutes := api.Group("/scan-history")
+		scanHistoryRoutes.Use(users.AuthMiddleware())
+		{
+			scanHistoryRoutes.POST("", scan_history.CreateScanHistoryHandler)
+		}
 	}
 
 	// Get port from environment variable or use default
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
+		port = "3000"
 	}
 
 	log.Printf("Server starting on port %s", port)
@@ -160,6 +169,8 @@ func main() {
 	log.Printf("  POST /api/activities - Tạo hoạt động mới")
 	log.Printf("  PUT  /api/activities/:id - Cập nhật hoạt động")
 	log.Printf("  DELETE /api/activities/:id - Xóa hoạt động")
+	log.Printf("Scan History routes (cần token):")
+	log.Printf("  POST /api/scan-history - Tạo lịch sử quét mới")
 	log.Printf("Admin routes (cần admin role):")
 	log.Printf("  /api/admin/users/* - Quản lý người dùng (commented out)")
 
