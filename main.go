@@ -7,6 +7,7 @@ import (
 	"plantheon-backend/common"
 	"plantheon-backend/models/activities"
 	"plantheon-backend/models/diseases"
+	"plantheon-backend/models/posts"
 	"plantheon-backend/models/scan_history"
 	"plantheon-backend/models/users"
 
@@ -24,7 +25,7 @@ func main() {
 	db := common.Init()
 
 	// Auto migrate database tables
-	err := db.AutoMigrate(&users.User{}, &diseases.Disease{}, &activities.Activity{}, &scan_history.ScanHistory{})
+	err := db.AutoMigrate(&users.User{}, &diseases.Disease{}, &activities.Activity{}, &scan_history.ScanHistory{}, &posts.Post{})
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
@@ -136,6 +137,25 @@ func main() {
 			scanHistoryRoutes.DELETE("", scan_history.DeleteAllScanHistoriesHandler)
 			scanHistoryRoutes.DELETE("/:id", scan_history.DeleteScanHistoryByIDHandler)
 		}
+
+		postRoutes := api.Group("/posts")
+		postRoutes.Use(users.AuthMiddleware())
+		{
+			// postRoutes.GET("", posts.GetPostsHandler)
+			// postRoutes.GET("/:id", posts.GetPostByIDHandler)
+			postRoutes.POST("", posts.CreatePostHandler)
+			// postRoutes.PUT("/:id", posts.UpdatePostHandler)
+			// postRoutes.DELETE("/:id", posts.DeletePostByIDHandler)
+			// postRoutes.PUT("/:id/like", posts.LikePostHandler)
+			// postRoutes.PUT("/:id/unlike", posts.UnlikePostHandler)
+			// postRoutes.PUT("/:id/share", posts.SharePostHandler)
+			// postRoutes.POST("/:id/comments", posts.AddCommentHandler)
+			// postRoutes.PUT("/:id/comments", posts.UpdateCommentHandler)
+			// postRoutes.DELETE("/:id/comments/:commentId", posts.DeleteCommentHandler)
+			// postRoutes.GET("/user/:userId", posts.GetPostsByUserIDHandler)
+
+		}
+
 	}
 
 	// Get port from environment variable or use default
