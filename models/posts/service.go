@@ -2,6 +2,7 @@ package posts
 
 import (
 	"plantheon-backend/common"
+	"plantheon-backend/models/comments"
 	"plantheon-backend/models/users"
 
 	"gorm.io/gorm"
@@ -74,7 +75,7 @@ func GetAllPosts() (PostListResponse, error) {
 	}, nil
 }
 
-func GetPostByID(id string) (*PostResponse, error) {
+func GetPostByID(id string) (*PostDetailResponse, error) {
 	service := NewPostsService()
 	var post Post
 	if err := service.db.Where("id = ?", id).First(&post).Error; err != nil {
@@ -85,7 +86,7 @@ func GetPostByID(id string) (*PostResponse, error) {
 	var user users.User
 	if err := service.db.Where("id = ?", post.UserID).First(&user).Error; err != nil {
 		// Nếu không tìm thấy user, trả về post nhưng với thông tin user rỗng
-		return &PostResponse{
+		return &PostDetailResponse{
 			ID:         post.ID,
 			UserID:     post.UserID,
 			FullName:   "Unknown User",
@@ -97,10 +98,15 @@ func GetPostByID(id string) (*PostResponse, error) {
 			ShareNum:   post.ShareNum,
 			CreatedAt:  post.CreatedAt,
 			UpdatedAt:  post.UpdatedAt,
+			CommentList: []comments.CommentResponse{},
 		}, nil
 	}
-
-	return &PostResponse{
+	// Lấy danh sách bình luận liên quan đến bài viết
+	var commentList []comments.CommentResponse
+	if err := service.db.Table("comments").Where("post_id = ?", post.ID).Find(&commentList).Error; err != nil {
+		return nil, err
+	}
+	return &PostDetailResponse{
 		ID:         post.ID,
 		UserID:     post.UserID,
 		FullName:   user.FullName,
@@ -112,6 +118,7 @@ func GetPostByID(id string) (*PostResponse, error) {
 		ShareNum:   post.ShareNum,
 		CreatedAt:  post.CreatedAt,
 		UpdatedAt:  post.UpdatedAt,
+		CommentList: commentList,
 	}, nil
 }
 
