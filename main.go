@@ -141,7 +141,7 @@ func main() {
 		postRoutes := api.Group("/posts")
 		postRoutes.Use(users.AuthMiddleware())
 		{
-			// postRoutes.GET("", posts.GetPostsHandler)
+			postRoutes.GET("", posts.GetPostsHandler)
 			// postRoutes.GET("/:id", posts.GetPostByIDHandler)
 			postRoutes.POST("", posts.CreatePostHandler)
 			// postRoutes.PUT("/:id", posts.UpdatePostHandler)

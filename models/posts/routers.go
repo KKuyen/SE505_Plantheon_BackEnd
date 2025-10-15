@@ -3,13 +3,15 @@ package posts
 import (
 	"net/http"
 
+	"plantheon-backend/models/users"
+
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
 )
 
 func CreatePostHandler(c *gin.Context) {
-	// Lấy user ID từ JWT token context (cách tốt hơn)
-	userID, exists := c.Get("user_id")
+	// Lấy thông tin user từ JWT token context
+	userInterface, exists := c.Get("user")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": "User not found in context",
@@ -17,10 +19,10 @@ func CreatePostHandler(c *gin.Context) {
 		return
 	}
 
-	userIDStr, ok := userID.(string)
+	user, ok := userInterface.(*users.User)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Invalid user ID format",
+			"error": "Invalid user format",
 		})
 		return
 	}
@@ -43,7 +45,7 @@ func CreatePostHandler(c *gin.Context) {
 	post := &Post{
 		Content:   req.Content,
 		ImageLink: pq.StringArray(req.ImageLink),
-		UserID:    userIDStr, // Sử dụng UserID từ JWT token
+		UserID:    user.ID, // Sử dụng UserID từ JWT token
 		Tags:      pq.StringArray(req.Tags),
 	}
 	
@@ -57,11 +59,28 @@ func CreatePostHandler(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Post created successfully",
 		"data": gin.H{
-			"id":      post.ID,
-			"user_id": post.UserID,
-			"content": post.Content,
-			"tags":    post.Tags,
+			"id":        post.ID,
+			"user_id":   post.UserID,
+			"full_name": user.FullName, // Lấy từ user object
+			"avatar":    user.Avatar,   // Lấy từ user object
+			"content":   post.Content,
+			"tags":      post.Tags,
+			"created_at": post.CreatedAt,
 		},
 	})
 
+}
+
+func GetPostsHandler(c *gin.Context) {
+	posts, err := GetAllPosts()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get posts",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": posts,
+	})	
 }
