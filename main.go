@@ -150,7 +150,7 @@ func main() {
 			// postRoutes.PUT("/:id/like", posts.LikePostHandler)
 			// postRoutes.PUT("/:id/unlike", posts.UnlikePostHandler)
 			// postRoutes.PUT("/:id/share", posts.SharePostHandler)
-			// postRoutes.POST("/:id/comments", posts.AddCommentHandler)
+			postRoutes.POST("/:id/comments", comments.AddCommentHandler)
 			// postRoutes.PUT("/:id/comments", posts.UpdateCommentHandler)
 			// postRoutes.DELETE("/:id/comments/:commentId", posts.DeleteCommentHandler)
 			// postRoutes.GET("/user/:userId", posts.GetPostsByUserIDHandler)
