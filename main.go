@@ -142,7 +142,7 @@ func main() {
 		postRoutes.Use(users.AuthMiddleware())
 		{
 			postRoutes.GET("", posts.GetPostsHandler)
-			// postRoutes.GET("/:id", posts.GetPostByIDHandler)
+			postRoutes.GET("/:id", posts.GetPostByIDHandler)
 			postRoutes.POST("", posts.CreatePostHandler)
 			// postRoutes.PUT("/:id", posts.UpdatePostHandler)
 			// postRoutes.DELETE("/:id", posts.DeletePostByIDHandler)

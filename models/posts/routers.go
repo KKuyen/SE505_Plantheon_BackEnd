@@ -84,3 +84,23 @@ func GetPostsHandler(c *gin.Context) {
 		"data": posts,
 	})	
 }
+
+func GetPostByIDHandler(c *gin.Context) {
+	id := c.Param("id")
+	if err := ValidateIdParam(id); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	post, err := GetPostByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+				"error": err.Error(),
+			})
+			return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"data": post,
+	})
+}

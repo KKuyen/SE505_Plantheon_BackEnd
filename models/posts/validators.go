@@ -3,6 +3,8 @@ package posts
 import (
 	"errors"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 func ValidateCreatePostRequest(req *CreatePostRequest) error {
@@ -32,6 +34,19 @@ func ValidateCreatePostRequest(req *CreatePostRequest) error {
 		if len(req.Tags) > 5 {
 			return errors.New("tags array cannot have more than 5 items")
 		}
+	}
+	return nil
+}
+
+func ValidateIdParam(id string) error {
+	id = strings.TrimSpace(id)
+	if id == "" {
+		return errors.New("id parameter is required")
+	}
+
+	// Validate UUID format
+	if _, err := uuid.Parse(id); err != nil {
+		return errors.New("id parameter must be a valid UUID")
 	}
 	return nil
 }
