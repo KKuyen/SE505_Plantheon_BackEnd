@@ -25,6 +25,14 @@ func CreatePost(post *Post) error {
 	return nil
 }
 
+func UpdatePost(post *Post) error {	
+	service := NewPostsService()
+	if err := service.db.Save(post).Error; err != nil {
+		return err	
+	}
+	return nil
+}
+
 func GetAllPosts() (PostListResponse, error) {
 	service := NewPostsService()
 	var posts []Post

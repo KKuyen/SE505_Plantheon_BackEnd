@@ -71,6 +71,71 @@ func CreatePostHandler(c *gin.Context) {
 
 }
 
+func UpdatePostHandler(c *gin.Context) {
+	id := c.Param("id")
+	if err := ValidateIdParam(id); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	// Lấy thông tin user từ JWT token context
+	userInterface, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User not found in context",
+		})
+		return
+	}
+
+	user, ok := userInterface.(*users.User)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Invalid user format",
+		})
+		return
+	}
+	var req CreatePostRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request",
+		})
+		return
+	}
+
+	if err := ValidateCreatePostRequest(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	post := &Post{
+		ID:        id,
+		Content:   req.Content,
+		ImageLink: pq.StringArray(req.ImageLink),
+		Tags:      pq.StringArray(req.Tags),
+		UserID:  user.ID,
+	}
+
+	if err := UpdatePost(post); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Post updated successfully",
+		"data": gin.H{
+			"id":        post.ID,
+			"content":   post.Content,
+			"tags":      post.Tags,
+			"updated_at": post.UpdatedAt,
+		},
+	})
+}
+
 func GetPostsHandler(c *gin.Context) {
 	posts, err := GetAllPosts()
 	if err != nil {
