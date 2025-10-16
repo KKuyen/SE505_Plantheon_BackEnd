@@ -189,3 +189,60 @@ func DeletePostByIDHandler(c *gin.Context) {
 		"message": "Post deleted successfully",
 	})
 }
+
+func LikePostHandler(c *gin.Context) {
+	id := c.Param("id")
+	if err := ValidateIdParam(id); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	if err := LikePost(id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Post liked successfully",
+	})
+}
+
+func UnlikePostHandler(c *gin.Context) {
+	id := c.Param("id")
+	if err := ValidateIdParam(id); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	if err := UnlikePost(id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Post unliked successfully",
+	})
+}
+
+func SharePostHandler(c *gin.Context) {
+	id := c.Param("id")
+	if err := ValidateIdParam(id); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	if err := SharePost(id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}	
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Post shared successfully",
+	})
+}

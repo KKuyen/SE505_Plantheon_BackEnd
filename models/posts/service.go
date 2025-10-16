@@ -129,6 +129,7 @@ func GetPostByID(id string) (*PostDetailResponse, error) {
 		CommentList: commentList,
 	}, nil
 }
+
 func DeletePostByID(id string) error {
 	service := NewPostsService()
 	if err := service.db.Delete(&Post{}, "id = ?", id).Error; err != nil {
@@ -137,3 +138,26 @@ func DeletePostByID(id string) error {
 	return nil
 }
 
+func LikePost(id string) error {
+	service := NewPostsService()
+	if err := service.db.Model(&Post{}).Where("id = ?", id).UpdateColumn("like_num", gorm.Expr("like_num + ?", 1)).Error; err != nil {
+		return err	
+	}
+	return nil
+}
+
+func UnlikePost(id string) error {
+	service := NewPostsService()
+	if err := service.db.Model(&Post{}).Where("id = ? AND like_num > 0", id).UpdateColumn("like_num", gorm.Expr("like_num - ?", 1)).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func SharePost(id string) error {
+	service := NewPostsService()
+	if err := service.db.Model(&Post{}).Where("id = ?", id).UpdateColumn("share_num", gorm.Expr("share_num + ?", 1)).Error; err != nil {
+		return err
+	}
+	return nil
+}
