@@ -146,7 +146,7 @@ func main() {
 			postRoutes.GET("/:id", posts.GetPostByIDHandler)
 			postRoutes.POST("", posts.CreatePostHandler)
 			postRoutes.PUT("/:id", posts.UpdatePostHandler)
-			// postRoutes.DELETE("/:id", posts.DeletePostByIDHandler)
+			postRoutes.DELETE("/:id", posts.DeletePostByIDHandler)
 			// postRoutes.PUT("/:id/like", posts.LikePostHandler)
 			// postRoutes.PUT("/:id/unlike", posts.UnlikePostHandler)
 			// postRoutes.PUT("/:id/share", posts.SharePostHandler)

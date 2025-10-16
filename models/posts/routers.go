@@ -169,3 +169,23 @@ func GetPostByIDHandler(c *gin.Context) {
 		"data": post,
 	})
 }
+
+func DeletePostByIDHandler(c *gin.Context) {
+	id := c.Param("id")
+	if err := ValidateIdParam(id); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	if err := DeletePostByID(id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Post deleted successfully",
+	})
+}

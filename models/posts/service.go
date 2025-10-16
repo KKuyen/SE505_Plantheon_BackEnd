@@ -129,4 +129,11 @@ func GetPostByID(id string) (*PostDetailResponse, error) {
 		CommentList: commentList,
 	}, nil
 }
+func DeletePostByID(id string) error {
+	service := NewPostsService()
+	if err := service.db.Delete(&Post{}, "id = ?", id).Error; err != nil {
+		return err	
+	}
+	return nil
+}
 
