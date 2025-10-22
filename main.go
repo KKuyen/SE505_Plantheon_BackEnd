@@ -6,10 +6,16 @@ import (
 
 	"plantheon-backend/common"
 	"plantheon-backend/models/activities"
+	"plantheon-backend/models/blogs"
 	"plantheon-backend/models/comments"
 	"plantheon-backend/models/diseases"
+	"plantheon-backend/models/guide_stages"
+	"plantheon-backend/models/noti"
+	"plantheon-backend/models/plants"
+	"plantheon-backend/models/post_likes"
 	"plantheon-backend/models/posts"
 	"plantheon-backend/models/scan_history"
+	"plantheon-backend/models/sub_guide_stages"
 	"plantheon-backend/models/users"
 
 	"github.com/gin-gonic/gin"
@@ -26,7 +32,20 @@ func main() {
 	db := common.Init()
 
 	// Auto migrate database tables
-	err := db.AutoMigrate(&users.User{}, &diseases.Disease{}, &activities.Activity{}, &scan_history.ScanHistory{}, &posts.Post{}, &comments.Comments{})
+	err := db.AutoMigrate(
+		&users.User{},
+		&posts.Post{},
+		&comments.Comments{},
+		&diseases.Disease{},
+		&scan_history.ScanHistory{},
+		&activities.Activity{},
+		&post_likes.PostLike{},
+		&blogs.Blog{},
+		&plants.Plant{},
+		&guide_stages.GuideStage{},
+		&sub_guide_stages.SubGuideStage{},
+		&noti.Notification{},
+	)
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
