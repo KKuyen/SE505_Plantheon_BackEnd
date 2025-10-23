@@ -23,3 +23,23 @@ func AddComment(comment *Comments) error {
 	service := NewCommentService()
 	return service.db.Create(comment).Error
 }
+
+func GetCommentByID(id string) (*Comments, error) {
+	service := NewCommentService()
+	var comment Comments
+	if err := service.db.First(&comment, "id = ?", id).Error; err != nil {
+		return nil, err
+	}
+	return &comment, nil
+}
+
+func UpdateComment(comment *Comments) error {
+	service := NewCommentService()
+	return service.db.Save(comment).Error
+}
+
+// Tăng số comment cho post
+func IncreasePostCommentCount(postID string) error {
+	db := common.GetDB()
+	return db.Exec("UPDATE posts SET comment_num = comment_num + 1 WHERE id = ?", postID).Error
+}

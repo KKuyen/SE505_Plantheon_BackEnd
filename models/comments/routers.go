@@ -47,6 +47,11 @@ func AddCommentHandler(c *gin.Context) {
 		return
 	}
 
+	// Tăng số comment cho post
+	if err := IncreasePostCommentCount(postID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to increase comment number"})
+		return
+	}
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Comment added successfully",
 		"data": gin.H{
@@ -59,4 +64,46 @@ func AddCommentHandler(c *gin.Context) {
 			"created_at": comment.CreatedAt,
 		},
 	})
+}
+
+func UpdateCommentHandler (c *gin.Context) {
+	commentID := c.Param("id")
+	var req UpdateCommentRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := ValidateUpdateCommentRequest(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	userInterface, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User not found in context",
+		})
+		return
+	}
+	user, ok := userInterface.(*users.User)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Invalid user format",
+		})
+		return
+	}
+	comment, err := GetCommentByID(commentID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Comment not found"})
+		return
+	}
+	if comment.UserID != user.ID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You are not authorized to update this comment"})
+		return
+	}
+	comment.Content = req.Content
+	if err := UpdateComment(comment); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Comment updated successfully"})
 }
