@@ -171,8 +171,8 @@ func main() {
 			postRoutes.PUT("/:id/share", posts.SharePostHandler)
 			postRoutes.POST("/:id/comments", comments.AddCommentHandler)
 			postRoutes.PUT("/:id/comments", comments.UpdateCommentHandler)
-			// postRoutes.DELETE("/:id/comments/:commentId", comments.DeleteCommentHandler)
-			// postRoutes.GET("/user/:userId", posts.GetPostsByUserIDHandler)
+			postRoutes.DELETE("/comments/:commentId", comments.DeleteCommentHandler)
+			postRoutes.GET("/user/:userId", posts.GetPostsByUserIDHandler)
 
 		}
 

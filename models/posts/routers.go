@@ -246,3 +246,23 @@ func SharePostHandler(c *gin.Context) {
 		"message": "Post shared successfully",
 	})
 }
+
+func GetPostsByUserIDHandler(c *gin.Context) {
+	userId := c.Param("userId")
+	if err := ValidateIdParam(userId); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	posts, err := GetPostsByUserID(userId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"data": posts,
+	})
+}

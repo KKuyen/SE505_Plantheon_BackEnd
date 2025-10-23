@@ -107,3 +107,35 @@ func UpdateCommentHandler (c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Comment updated successfully"})
 }
+
+func DeleteCommentHandler(c *gin.Context) {
+	commentID := c.Param("commentId")
+	userInterface, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User not found in context",
+		})
+		return
+	}
+	user, ok := userInterface.(*users.User)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Invalid user format",
+		})
+		return
+	}
+	comment, err := GetCommentByID(commentID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Comment not found"})
+		return
+	}
+	if comment.UserID != user.ID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You are not authorized to delete this comment"})
+		return
+	}
+	if err := DeleteCommentByID(commentID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Comment deleted successfully"})
+}

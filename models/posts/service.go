@@ -161,3 +161,50 @@ func SharePost(id string) error {
 	}
 	return nil
 }
+
+func GetPostsByUserID(userID string) (PostListResponse, error) {
+	service := NewPostsService()
+	var posts []Post
+	if err := service.db.Where("user_id = ?", userID).Find(&posts).Error; err != nil {
+		return PostListResponse{}, err
+	}
+	var postResponses []PostResponse
+	for _, post := range posts {
+		// Lấy thông tin user từ UserID
+		var user users.User
+		if err := service.db.Where("id = ?", post.UserID).First(&user).Error; err != nil {
+			// Nếu không tìm thấy user, vẫn trả về post nhưng với thông tin user rỗng
+			postResponses = append(postResponses, PostResponse{
+				ID:         post.ID,
+				UserID:     post.UserID,
+				FullName:   "Unknown User",
+				Avatar:     "",
+				Content:    post.Content,	
+				Tags:       post.Tags,
+				LikeNum:    post.LikeNum,
+				CommentNum: post.CommentNum,
+				ShareNum:   post.ShareNum,
+				CreatedAt:  post.CreatedAt,
+				UpdatedAt:  post.UpdatedAt,
+			})
+			continue
+		}
+		postResponses = append(postResponses, PostResponse{
+			ID:         post.ID,
+			UserID:     post.UserID,	
+			FullName:   user.FullName,
+			Avatar:     user.Avatar,
+			Content:    post.Content,
+			Tags:       post.Tags,
+			LikeNum:    post.LikeNum,
+			CommentNum: post.CommentNum,
+			ShareNum:   post.ShareNum,
+			CreatedAt:  post.CreatedAt,
+			UpdatedAt:  post.UpdatedAt,
+		})
+	}	
+	return PostListResponse{
+		Posts: postResponses,
+		Total: len(postResponses),
+	}, nil
+}

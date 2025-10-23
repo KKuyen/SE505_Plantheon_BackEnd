@@ -43,3 +43,8 @@ func IncreasePostCommentCount(postID string) error {
 	db := common.GetDB()
 	return db.Exec("UPDATE posts SET comment_num = comment_num + 1 WHERE id = ?", postID).Error
 }
+
+func DeleteCommentByID(id string) error {
+	service := NewCommentService()
+	return service.db.Delete(&Comments{}, "id = ?", id).Error
+}
