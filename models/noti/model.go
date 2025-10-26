@@ -9,6 +9,7 @@ import (
 
 type Notification struct {
 	ID        string     `json:"id" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
+	UserID    string     `json:"user_id" gorm:"not null;type:uuid"`
 	Title     string     `json:"title" gorm:"type:varchar"`
 	Content   string     `json:"content" gorm:"type:varchar"`
 	IsRead    bool       `json:"is_read" gorm:"type:boolean"`

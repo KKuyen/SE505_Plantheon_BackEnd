@@ -188,7 +188,17 @@ func main() {
 		{
 			adminNewsRoutes.POST("", blogs.CreateNewsHandler)
 			adminNewsRoutes.PUT("/:id", blogs.UpdateNewsHandler)
-			adminNewsRoutes.DELETE("/:id", blogs.DeleteNewsHandler)
+				adminNewsRoutes.DELETE("/:id", blogs.DeleteNewsHandler)
+			}
+
+		notificationRoutes := api.Group("/notification")
+		notificationRoutes.Use(users.AuthMiddleware())
+		{
+			notificationRoutes.POST("", noti.CreateNotificationHandler)
+			notificationRoutes.GET("", noti.GetNotificationsHandler)
+			notificationRoutes.GET("/:id/seen", noti.MarkNotificationAsSeenHandler)
+			notificationRoutes.DELETE("/:id", noti.DeleteNotificationHandler)
+			notificationRoutes.DELETE("", noti.DeleteAllNotificationsHandler)
 		}
 	}
 
