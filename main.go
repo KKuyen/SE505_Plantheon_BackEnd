@@ -180,6 +180,57 @@ func main() {
 
 		}
 
+		// Guide Stage routes
+		guideStageRoutes := api.Group("/guide-stages")
+		{
+			// Public routes
+			guideStageRoutes.GET("/:id", guide_stages.GetGuideStageByIDHandler)
+			guideStageRoutes.GET("/plant/:plant_id", guide_stages.GetGuideStagesByPlantIDHandler)
+		}
+		
+		// Admin-only Guide Stage routes
+		adminGuideStageRoutes := api.Group("/guide-stages")
+		adminGuideStageRoutes.Use(users.RequireAdmin())
+		{
+			adminGuideStageRoutes.POST("", guide_stages.CreateGuideStageHandler)
+			adminGuideStageRoutes.PUT("/:id", guide_stages.UpdateGuideStageHandler)
+			adminGuideStageRoutes.DELETE("/:id", guide_stages.DeleteGuideStageHandler)
+		}
+
+		// Sub Guide Stage routes
+		subGuideStageRoutes := api.Group("/sub-guide-stages")
+		{
+			// Public routes
+			subGuideStageRoutes.GET("/:id", sub_guide_stages.GetSubGuideStageByIDHandler)
+			subGuideStageRoutes.GET("/guide-stage/:guide_stage_id", sub_guide_stages.GetSubGuideStagesByGuideStageIDHandler)
+		}
+		
+		// Admin-only Sub Guide Stage routes
+		adminSubGuideStageRoutes := api.Group("/sub-guide-stages")
+		adminSubGuideStageRoutes.Use(users.RequireAdmin())
+		{
+			adminSubGuideStageRoutes.POST("", sub_guide_stages.CreateSubGuideStageHandler)
+			adminSubGuideStageRoutes.PUT("/:id", sub_guide_stages.UpdateSubGuideStageHandler)
+			adminSubGuideStageRoutes.DELETE("/:id", sub_guide_stages.DeleteSubGuideStageHandler)
+		}
+
+		// Plant routes
+		plantRoutes := api.Group("/plants")
+		{
+			// Public routes
+			plantRoutes.GET("", plants.GetAllPlantsHandler)
+			plantRoutes.GET("/:id", plants.GetPlantByIDHandler)
+		}
+		
+		// Admin-only Plant routes
+		adminPlantRoutes := api.Group("/plants")
+		adminPlantRoutes.Use(users.RequireAdmin())
+		{
+			adminPlantRoutes.POST("", plants.CreatePlantHandler)
+			adminPlantRoutes.PUT("/:id", plants.UpdatePlantHandler)
+			adminPlantRoutes.DELETE("/:id", plants.DeletePlantHandler)
+		}
+
 	}
 
 	// Get port from environment variable or use default
