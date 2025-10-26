@@ -2,6 +2,7 @@ package activities
 
 import (
 	"errors"
+	"strconv"
 	"strings"
 )
 
@@ -168,4 +169,20 @@ func ValidatePaginationParams(page, limit int) (int, int, error) {
 		limit = 100
 	}
 	return page, limit, nil
+}
+
+// ValidateDeleteActivitiesRequest validates bulk delete request
+func ValidateDeleteActivitiesRequest(req *DeleteActivitiesRequest) error {
+	if req == nil {
+		return errors.New("request body is required")
+	}
+	if len(req.IDs) == 0 {
+		return errors.New("ids cannot be empty")
+	}
+	for i, id := range req.IDs {
+		if strings.TrimSpace(id) == "" {
+			return errors.New("id at index " + strconv.Itoa(i) + " cannot be empty")
+		}
+	}
+	return nil
 }

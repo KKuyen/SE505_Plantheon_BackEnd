@@ -112,6 +112,56 @@ type ActivitiesListResponse struct {
 	TotalPages int                `json:"total_pages"`
 }
 
+// DeleteActivitiesRequest represents a bulk delete request for activities
+type DeleteActivitiesRequest struct {
+    IDs []string `json:"ids"`
+}
+
+// MonthlyFinancialSummary represents financial summary for a specific month
+type MonthlyFinancialSummary struct {
+	Year         int                `json:"year"`
+	Month        int                `json:"month"`
+	TotalIncome  float64            `json:"total_income"`  // Tổng tiền thu (money > 0)
+	TotalExpense float64            `json:"total_expense"` // Tổng tiền chi (money < 0)
+	NetAmount    float64            `json:"net_amount"`    // Tiền ròng (thu - chi)
+	Activities   []ActivityResponse `json:"activities"`    // Danh sách các activities có money trong tháng
+}
+type MonthlyFinancialSummaryWithoutActivities struct {
+	Year         int                `json:"year"`
+	Month        int                `json:"month"`
+	TotalIncome  float64            `json:"total_income"`  // Tổng tiền thu (money > 0)
+	TotalExpense float64            `json:"total_expense"` // Tổng tiền chi (money < 0)
+	NetAmount    float64            `json:"net_amount"`    // Tiền ròng (thu - chi)
+
+}
+
+// AnnualFinancialSummary represents financial summary for a whole year
+type AnnualFinancialSummary struct {
+	Year          int                       `json:"year"`
+	MonthlySummaries []MonthlyFinancialSummaryWithoutActivities `json:"monthly_summaries"`
+	TotalIncome   float64                   `json:"total_income"`
+	TotalExpense  float64                   `json:"total_expense"`
+	NetAmount     float64                   `json:"net_amount"`
+}
+
+// YearlyFinancialSummary represents financial summary for a single year (without monthly breakdown)
+type YearlyFinancialSummary struct {
+	Year         int     `json:"year"`
+	TotalIncome  float64 `json:"total_income"`
+	TotalExpense float64 `json:"total_expense"`
+	NetAmount    float64 `json:"net_amount"`
+}
+
+// MultiYearFinancialSummary represents financial summary for multiple years
+type MultiYearFinancialSummary struct {
+	StartYear        int                      `json:"start_year"`
+	EndYear          int                      `json:"end_year"`
+	YearlySummaries  []YearlyFinancialSummary `json:"yearly_summaries"`
+	TotalIncome      float64                  `json:"total_income"`       // Tổng tiền thu của tất cả các năm
+	TotalExpense     float64                  `json:"total_expense"`      // Tổng tiền chi của tất cả các năm
+	NetAmount        float64                  `json:"net_amount"`         // Tổng ròng của tất cả các năm
+}
+
 // ToActivityResponse converts Activity to ActivityResponse
 func (a *Activity) ToActivityResponse() ActivityResponse {
 	return ActivityResponse{

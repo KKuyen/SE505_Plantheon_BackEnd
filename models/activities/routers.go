@@ -488,3 +488,135 @@ func DeleteActivityHandler(c *gin.Context) {
 		"message": "Activity deleted successfully",
 	})
 }
+
+// DeleteActivitiesHandler handles bulk deletion of activities by IDs
+func DeleteActivitiesHandler(c *gin.Context) {
+	var req DeleteActivitiesRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+		return
+	}
+
+	if err := ValidateDeleteActivitiesRequest(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	deleted, err := DeleteActivities(req.IDs)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete activities"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Activities deleted successfully",
+		"deleted": deleted,
+	})
+}
+
+// GetMonthlyFinancialSummaryHandler handles getting financial summary for a specific month
+// GET /api/v1/activities/financial/monthly?year=2025&month=10
+func GetMonthlyFinancialSummaryHandler(c *gin.Context) {
+	yearStr := c.Query("year")
+	monthStr := c.Query("month")
+
+	if yearStr == "" || monthStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "year and month are required",
+		})
+		return
+	}
+
+	year, err := strconv.Atoi(yearStr)
+	if err != nil || year < 1 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid year"})
+		return
+	}
+
+	month, err := strconv.Atoi(monthStr)
+	if err != nil || month < 1 || month > 12 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid month, must be 1-12"})
+		return
+	}
+
+	summary, err := GetMonthlyFinancialSummary(year, month)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get financial summary",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": summary,
+	})
+}
+
+// GetAnnualFinancialSummaryHandler handles getting financial summary for a whole year (12 months)
+// GET /api/v1/activities/financial/annual?year=2025
+func GetAnnualFinancialSummaryHandler(c *gin.Context) {
+	yearStr := c.Query("year")
+
+	if yearStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "year is required",
+		})
+		return
+	}
+
+	year, err := strconv.Atoi(yearStr)
+	if err != nil || year < 1 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid year"})
+		return
+	}
+
+	summary, err := GetAnnualFinancialSummary(year)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get annual financial summary",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": summary,
+	})
+}
+
+// GetMultiYearFinancialSummaryHandler handles getting financial summary for multiple years
+// GET /api/v1/activities/financial/multi-year?start_year=2020&end_year=2025
+func GetMultiYearFinancialSummaryHandler(c *gin.Context) {
+	startYearStr := c.Query("start_year")
+	endYearStr := c.Query("end_year")
+
+	if startYearStr == "" || endYearStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "start_year and end_year are required",
+		})
+		return
+	}
+
+	startYear, err := strconv.Atoi(startYearStr)
+	if err != nil || startYear < 1 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid start_year"})
+		return
+	}
+
+	endYear, err := strconv.Atoi(endYearStr)
+	if err != nil || endYear < 1 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid end_year"})
+		return
+	}
+
+	summary, err := GetMultiYearFinancialSummary(startYear, endYear)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get multi-year financial summary",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": summary,
+	})
+}

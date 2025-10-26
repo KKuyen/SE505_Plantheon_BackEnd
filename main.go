@@ -134,9 +134,13 @@ func main() {
 			activityRoutes.GET("/count", activities.GetActivitiesCountHandler)
 			activityRoutes.GET("/get-activites-by-month", activities.GetActivitiesCalendarByMonthHandler)
 			activityRoutes.GET("/by-day", activities.GetActivitiesByDayHandler)
+			activityRoutes.GET("/financial/monthly", activities.GetMonthlyFinancialSummaryHandler)
+			activityRoutes.GET("/financial/annual", activities.GetAnnualFinancialSummaryHandler)
+			activityRoutes.GET("/financial/multi-year", activities.GetMultiYearFinancialSummaryHandler)
 			activityRoutes.GET("/:id", activities.GetActivity)
 			activityRoutes.POST("", activities.CreateActivityHandler)
 			activityRoutes.PUT("/:id", activities.UpdateActivityHandler)
+			activityRoutes.DELETE("", activities.DeleteActivitiesHandler)
 			activityRoutes.DELETE("/:id", activities.DeleteActivityHandler)
 		}
 

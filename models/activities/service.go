@@ -151,6 +151,13 @@ func DeleteActivity(id string) error {
 	return service.db.Where("id = ?", id).Delete(&Activity{}).Error
 }
 
+// DeleteActivities deletes multiple activities by IDs and returns number of rows affected
+func DeleteActivities(ids []string) (int64, error) {
+	service := NewActivityService()
+	tx := service.db.Where("id IN ?", ids).Delete(&Activity{})
+	return tx.RowsAffected, tx.Error
+}
+
 // GetActivitiesByMonthYear returns activities whose time_start or day fall within the given month/year (UTC)
 func GetActivitiesByMonthYear(year int, month int) ([]Activity, error) {
 	service := NewActivityService()
@@ -179,4 +186,206 @@ func GetActivitiesByDay(day time.Time) ([]Activity, error) {
         start, next,
     ).Order("created_at DESC").Find(&activities).Error
     return activities, err
+}
+
+// GetMonthlyFinancialSummary calculates total income and expense for a specific month
+// Only includes activities where money is not null
+func GetMonthlyFinancialSummary(year int, month int) (*MonthlyFinancialSummary, error) {
+	service := NewActivityService()
+	startOfMonth := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.UTC)
+	startOfNextMonth := startOfMonth.AddDate(0, 1, 0)
+
+	var activities []Activity
+	err := service.db.Where(
+		"money IS NOT NULL AND time_start IS NOT NULL AND time_start >= ? AND time_start < ?",
+		startOfMonth, startOfNextMonth,
+	).Order("time_start ASC").Find(&activities).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	summary := &MonthlyFinancialSummary{
+		Year:         year,
+		Month:        month,
+		TotalIncome:  0,
+		TotalExpense: 0,
+		Activities:   make([]ActivityResponse, 0),
+	}
+
+	for _, activity := range activities {
+		// Convert money to negative if type is EXPENSE
+		activityResponse := activity.ToActivityResponse()
+		if activity.Money != nil && activity.Type == "EXPENSE" {
+			negativeMoney := -*activity.Money
+			if negativeMoney > 0 {
+				negativeMoney = -negativeMoney
+			}
+			activityResponse.Money = &negativeMoney
+		}
+		
+		// Add to activities list with corrected money
+		summary.Activities = append(summary.Activities, activityResponse)
+		
+		// Calculate totals
+		if activity.Money != nil {
+			moneyValue := *activity.Money
+			// Convert to negative if EXPENSE
+			if activity.Type == "EXPENSE" && moneyValue > 0 {
+				moneyValue = -moneyValue
+			}
+			
+			if moneyValue > 0 {
+				summary.TotalIncome += moneyValue
+			} else if moneyValue < 0 {
+				summary.TotalExpense += moneyValue
+			}
+		}
+	}
+
+	summary.NetAmount = summary.TotalIncome + summary.TotalExpense // Expense đã âm rồi nên cộng
+
+	return summary, nil
+}
+
+// GetAnnualFinancialSummary calculates financial summary for all 12 months of a year
+// Optimized: Query once for the entire year instead of 12 separate queries
+func GetAnnualFinancialSummary(year int) (*AnnualFinancialSummary, error) {
+	service := NewActivityService()
+	startOfYear := time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC)
+	startOfNextYear := startOfYear.AddDate(1, 0, 0)
+
+	// Query all activities for the entire year at once
+	var activities []Activity
+	err := service.db.Where(
+		"money IS NOT NULL AND time_start IS NOT NULL AND time_start >= ? AND time_start < ?",
+		startOfYear, startOfNextYear,
+	).Find(&activities).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	annualSummary := &AnnualFinancialSummary{
+		Year:             year,
+		MonthlySummaries: make([]MonthlyFinancialSummaryWithoutActivities, 12),
+		TotalIncome:      0,
+		TotalExpense:     0,
+	}
+
+	// Initialize all 12 months
+	for month := 1; month <= 12; month++ {
+		annualSummary.MonthlySummaries[month-1] = MonthlyFinancialSummaryWithoutActivities{
+			Year:         year,
+			Month:        month,
+			TotalIncome:  0,
+			TotalExpense: 0,
+			NetAmount:    0,
+		}
+	}
+
+	// Group activities by month and calculate totals
+	for _, activity := range activities {
+		if activity.Money != nil && activity.TimeStart != nil {
+			month := int(activity.TimeStart.Month())
+			monthIndex := month - 1
+
+			moneyValue := *activity.Money
+			// Convert to negative if EXPENSE
+			if activity.Type == "EXPENSE" && moneyValue > 0 {
+				moneyValue = -moneyValue
+			}
+
+			if moneyValue > 0 {
+				annualSummary.MonthlySummaries[monthIndex].TotalIncome += moneyValue
+				annualSummary.TotalIncome += moneyValue
+			} else if moneyValue < 0 {
+				annualSummary.MonthlySummaries[monthIndex].TotalExpense += moneyValue
+				annualSummary.TotalExpense += moneyValue
+			}
+
+			annualSummary.MonthlySummaries[monthIndex].NetAmount += moneyValue
+		}
+	}
+
+	annualSummary.NetAmount = annualSummary.TotalIncome + annualSummary.TotalExpense
+
+	return annualSummary, nil
+}
+
+// GetMultiYearFinancialSummary calculates financial summary for multiple years (range)
+// Optimized: Query once for all years instead of separate queries per year
+func GetMultiYearFinancialSummary(startYear, endYear int) (*MultiYearFinancialSummary, error) {
+	if startYear > endYear {
+		startYear, endYear = endYear, startYear // Swap if start > end
+	}
+
+	service := NewActivityService()
+	startOfPeriod := time.Date(startYear, 1, 1, 0, 0, 0, 0, time.UTC)
+	endOfPeriod := time.Date(endYear+1, 1, 1, 0, 0, 0, 0, time.UTC)
+
+	// Query all activities for the entire period at once
+	var activities []Activity
+	err := service.db.Where(
+		"money IS NOT NULL AND time_start IS NOT NULL AND time_start >= ? AND time_start < ?",
+		startOfPeriod, endOfPeriod,
+	).Find(&activities).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	multiYearSummary := &MultiYearFinancialSummary{
+		StartYear:       startYear,
+		EndYear:         endYear,
+		YearlySummaries: make([]YearlyFinancialSummary, 0),
+		TotalIncome:     0,
+		TotalExpense:    0,
+		NetAmount:       0,
+	}
+
+	// Create a map for each year
+	yearMap := make(map[int]*YearlyFinancialSummary)
+	for year := startYear; year <= endYear; year++ {
+		yearMap[year] = &YearlyFinancialSummary{
+			Year:         year,
+			TotalIncome:  0,
+			TotalExpense: 0,
+			NetAmount:    0,
+		}
+	}
+
+	// Group activities by year and calculate totals
+	for _, activity := range activities {
+		if activity.Money != nil && activity.TimeStart != nil {
+			year := activity.TimeStart.Year()
+			if yearSummary, exists := yearMap[year]; exists {
+				moneyValue := *activity.Money
+				// Convert to negative if EXPENSE
+				if activity.Type == "EXPENSE" && moneyValue > 0 {
+					moneyValue = -moneyValue
+				}
+
+				if moneyValue > 0 {
+					yearSummary.TotalIncome += moneyValue
+				} else if moneyValue < 0 {
+					yearSummary.TotalExpense += moneyValue
+				}
+
+				yearSummary.NetAmount += moneyValue
+			}
+		}
+	}
+
+	// Convert map to sorted slice and calculate grand totals
+	for year := startYear; year <= endYear; year++ {
+		yearSummary := yearMap[year]
+		multiYearSummary.YearlySummaries = append(multiYearSummary.YearlySummaries, *yearSummary)
+		multiYearSummary.TotalIncome += yearSummary.TotalIncome
+		multiYearSummary.TotalExpense += yearSummary.TotalExpense
+	}
+
+	multiYearSummary.NetAmount = multiYearSummary.TotalIncome + multiYearSummary.TotalExpense
+
+	return multiYearSummary, nil
 }
