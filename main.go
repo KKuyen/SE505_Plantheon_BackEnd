@@ -177,7 +177,6 @@ func main() {
 			postRoutes.PUT("/:id/comments", comments.UpdateCommentHandler)
 			postRoutes.DELETE("/comments/:commentId", comments.DeleteCommentHandler)
 			postRoutes.GET("/user/:userId", posts.GetPostsByUserIDHandler)
-
 		}
 
 		// Guide Stage routes
@@ -231,6 +230,31 @@ func main() {
 			adminPlantRoutes.DELETE("/:id", plants.DeletePlantHandler)
 		}
 
+		newsRoutes := api.Group("/news")
+		newsRoutes.Use(users.AuthMiddleware())
+		{
+			newsRoutes.GET("", blogs.GetNewsHandler)
+			newsRoutes.GET("/:id", blogs.GetNewsByIDHandler)
+		}
+
+		// Admin-only news routes (require admin role)
+		adminNewsRoutes := api.Group("/news")
+		adminNewsRoutes.Use(users.RequireAdmin())
+		{
+			adminNewsRoutes.POST("", blogs.CreateNewsHandler)
+			adminNewsRoutes.PUT("/:id", blogs.UpdateNewsHandler)
+				adminNewsRoutes.DELETE("/:id", blogs.DeleteNewsHandler)
+			}
+
+		notificationRoutes := api.Group("/notification")
+		notificationRoutes.Use(users.AuthMiddleware())
+		{
+			notificationRoutes.POST("", noti.CreateNotificationHandler)
+			notificationRoutes.GET("", noti.GetNotificationsHandler)
+			notificationRoutes.GET("/:id/seen", noti.MarkNotificationAsSeenHandler)
+			notificationRoutes.DELETE("/:id", noti.DeleteNotificationHandler)
+			notificationRoutes.DELETE("", noti.DeleteAllNotificationsHandler)
+		}
 	}
 
 	// Get port from environment variable or use default
