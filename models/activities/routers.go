@@ -364,8 +364,8 @@ func GetActivitiesCalendarByMonthHandler(c *gin.Context) {
                 // Check if activity overlaps with this day
                 if (activityStart.Before(currentDay) || activityStart.Equal(currentDay)) && 
                    (activityEnd.After(currentDay) || activityEnd.Equal(currentDay)) {
-                    key := currentDay.Format("2006-01-02")
-                    dayMap[key] = append(dayMap[key], ActivityCalendarItem{Title: a.Title})
+						key := currentDay.Format("2006-01-02")
+						dayMap[key] = append(dayMap[key], ActivityCalendarItem{Title: a.Title, Type: a.Type})
                 }
             }
         }
@@ -377,22 +377,22 @@ func GetActivitiesCalendarByMonthHandler(c *gin.Context) {
             currentDay := time.Date(year, time.Month(month), d, 0, 0, 0, 0, time.UTC)
             
             // Check if recurring activity should appear on this day
-            if CheckActivityRepeatsOnDate(&a, currentDay) {
-                key := currentDay.Format("2006-01-02")
-                
-                // Check if already added (avoid duplicates)
-                alreadyAdded := false
-                for _, item := range dayMap[key] {
-                    if item.Title == a.Title {
-                        alreadyAdded = true
-                        break
-                    }
-                }
-                
-                if !alreadyAdded {
-                    dayMap[key] = append(dayMap[key], ActivityCalendarItem{Title: a.Title})
-                }
-            }
+			if CheckActivityRepeatsOnDate(&a, currentDay) {
+				key := currentDay.Format("2006-01-02")
+
+				// Check if already added (avoid duplicates)
+				alreadyAdded := false
+				for _, item := range dayMap[key] {
+						if item.Title == a.Title && item.Type == a.Type {
+						alreadyAdded = true
+						break
+					}
+				}
+
+				if !alreadyAdded {
+						dayMap[key] = append(dayMap[key], ActivityCalendarItem{Title: a.Title, Type: a.Type})
+				}
+			}
         }
     }
 

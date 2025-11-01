@@ -34,7 +34,8 @@ type ActivityResponse struct {
 
 // Minimal activity item for calendar list (only title)
 type ActivityCalendarItem struct {
-    Title string `json:"title"`
+	Title string `json:"title"`
+	Type  string `json:"type"` // Added Type field for activity type
 }
 
 // Activity item for day view (minimal info)

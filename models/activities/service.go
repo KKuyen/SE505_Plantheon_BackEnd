@@ -252,13 +252,42 @@ func GetAllRecurringActivities(activities *[]Activity) error {
 	return err
 }
 
+// CalculateRecurringMoneyForPeriod calculates total money from a recurring activity for a specific time period
+// Returns the total money value (already converted to negative if EXPENSE) for the period
+func CalculateRecurringMoneyForPeriod(activity *Activity, startDate, endDate time.Time) float64 {
+	if activity.Money == nil || *activity.Money == 0 {
+		return 0
+	}
+
+	totalMoney := 0.0
+	moneyValue := *activity.Money
+
+	// Convert to negative if EXPENSE
+	if activity.Type == "EXPENSE" && moneyValue > 0 {
+		moneyValue = -moneyValue
+	}
+
+	// Count how many times the activity repeats in the period
+	currentDate := startDate
+	for !currentDate.After(endDate) {
+		if CheckActivityRepeatsOnDate(activity, currentDate) {
+			totalMoney += moneyValue
+		}
+		currentDate = currentDate.AddDate(0, 0, 1) // Move to next day
+	}
+
+	return totalMoney
+}
+
 // GetMonthlyFinancialSummary calculates total income and expense for a specific month
 // Only includes activities where money is not null
+// Now includes recurring activities
 func GetMonthlyFinancialSummary(year int, month int) (*MonthlyFinancialSummary, error) {
 	service := NewActivityService()
 	startOfMonth := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.UTC)
 	startOfNextMonth := startOfMonth.AddDate(0, 1, 0)
 
+	// Get regular activities
 	var activities []Activity
 	err := service.db.Where(
 		"money IS NOT NULL AND time_start IS NOT NULL AND time_start >= ? AND time_start < ?",
@@ -277,6 +306,7 @@ func GetMonthlyFinancialSummary(year int, month int) (*MonthlyFinancialSummary, 
 		Activities:   make([]ActivityResponse, 0),
 	}
 
+	// Process regular activities
 	for _, activity := range activities {
 		// Convert money to negative if type is EXPENSE
 		activityResponse := activity.ToActivityResponse()
@@ -307,6 +337,26 @@ func GetMonthlyFinancialSummary(year int, month int) (*MonthlyFinancialSummary, 
 		}
 	}
 
+	// Get recurring activities and calculate their contribution
+	var recurringActivities []Activity
+	err = GetAllRecurringActivities(&recurringActivities)
+	if err == nil {
+		endOfMonth := startOfNextMonth.AddDate(0, 0, -1) // Last day of month
+		
+		for _, activity := range recurringActivities {
+			if activity.Money != nil {
+				// Calculate total money for this recurring activity in the month
+				totalMoney := CalculateRecurringMoneyForPeriod(&activity, startOfMonth, endOfMonth)
+				
+				if totalMoney > 0 {
+					summary.TotalIncome += totalMoney
+				} else if totalMoney < 0 {
+					summary.TotalExpense += totalMoney
+				}
+			}
+		}
+	}
+
 	summary.NetAmount = summary.TotalIncome + summary.TotalExpense // Expense đã âm rồi nên cộng
 
 	return summary, nil
@@ -314,12 +364,13 @@ func GetMonthlyFinancialSummary(year int, month int) (*MonthlyFinancialSummary, 
 
 // GetAnnualFinancialSummary calculates financial summary for all 12 months of a year
 // Optimized: Query once for the entire year instead of 12 separate queries
+// Now includes recurring activities
 func GetAnnualFinancialSummary(year int) (*AnnualFinancialSummary, error) {
 	service := NewActivityService()
 	startOfYear := time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC)
 	startOfNextYear := startOfYear.AddDate(1, 0, 0)
 
-	// Query all activities for the entire year at once
+	// Query all regular activities for the entire year at once
 	var activities []Activity
 	err := service.db.Where(
 		"money IS NOT NULL AND time_start IS NOT NULL AND time_start >= ? AND time_start < ?",
@@ -348,7 +399,7 @@ func GetAnnualFinancialSummary(year int) (*AnnualFinancialSummary, error) {
 		}
 	}
 
-	// Group activities by month and calculate totals
+	// Group regular activities by month and calculate totals
 	for _, activity := range activities {
 		if activity.Money != nil && activity.TimeStart != nil {
 			month := int(activity.TimeStart.Month())
@@ -369,6 +420,34 @@ func GetAnnualFinancialSummary(year int) (*AnnualFinancialSummary, error) {
 			}
 
 			annualSummary.MonthlySummaries[monthIndex].NetAmount += moneyValue
+		}
+	}
+
+	// Get recurring activities and calculate their contribution for each month
+	var recurringActivities []Activity
+	err = GetAllRecurringActivities(&recurringActivities)
+	if err == nil {
+		for month := 1; month <= 12; month++ {
+			startOfMonth := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.UTC)
+			endOfMonth := startOfMonth.AddDate(0, 1, -1) // Last day of month
+			
+			for _, activity := range recurringActivities {
+				if activity.Money != nil {
+					// Calculate total money for this recurring activity in the month
+					totalMoney := CalculateRecurringMoneyForPeriod(&activity, startOfMonth, endOfMonth)
+					
+					monthIndex := month - 1
+					if totalMoney > 0 {
+						annualSummary.MonthlySummaries[monthIndex].TotalIncome += totalMoney
+						annualSummary.TotalIncome += totalMoney
+					} else if totalMoney < 0 {
+						annualSummary.MonthlySummaries[monthIndex].TotalExpense += totalMoney
+						annualSummary.TotalExpense += totalMoney
+					}
+					
+					annualSummary.MonthlySummaries[monthIndex].NetAmount += totalMoney
+				}
+			}
 		}
 	}
 
@@ -419,7 +498,7 @@ func GetMultiYearFinancialSummary(startYear, endYear int) (*MultiYearFinancialSu
 		}
 	}
 
-	// Group activities by year and calculate totals
+	// Group regular activities by year and calculate totals
 	for _, activity := range activities {
 		if activity.Money != nil && activity.TimeStart != nil {
 			year := activity.TimeStart.Year()
@@ -437,6 +516,33 @@ func GetMultiYearFinancialSummary(startYear, endYear int) (*MultiYearFinancialSu
 				}
 
 				yearSummary.NetAmount += moneyValue
+			}
+		}
+	}
+
+	// Get recurring activities and calculate their contribution for each year
+	var recurringActivities []Activity
+	err = GetAllRecurringActivities(&recurringActivities)
+	if err == nil {
+		for year := startYear; year <= endYear; year++ {
+			startOfYear := time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC)
+			endOfYear := time.Date(year, 12, 31, 23, 59, 59, 999999999, time.UTC)
+			
+			for _, activity := range recurringActivities {
+				if activity.Money != nil {
+					// Calculate total money for this recurring activity in the year
+					totalMoney := CalculateRecurringMoneyForPeriod(&activity, startOfYear, endOfYear)
+					
+					if yearSummary, exists := yearMap[year]; exists {
+						if totalMoney > 0 {
+							yearSummary.TotalIncome += totalMoney
+						} else if totalMoney < 0 {
+							yearSummary.TotalExpense += totalMoney
+						}
+						
+						yearSummary.NetAmount += totalMoney
+					}
+				}
 			}
 		}
 	}
