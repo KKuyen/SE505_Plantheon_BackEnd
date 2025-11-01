@@ -19,6 +19,61 @@ func NewActivityService() *ActivityService {
 	}
 }
 
+// CheckActivityRepeatsOnDate checks if a repeating activity should appear on the given date
+func CheckActivityRepeatsOnDate(activity *Activity, targetDate time.Time) bool {
+	// If repeat is null or empty, it's not a repeating activity
+	if activity.Repeat == nil || *activity.Repeat == "" {
+		return false
+	}
+
+	// If time_start is null, we can't determine the pattern
+	if activity.TimeStart == nil {
+		return false
+	}
+
+	activityStart := *activity.TimeStart
+	repeatType := *activity.Repeat
+
+	// Check if target date is before the activity start date
+	activityStartDay := time.Date(activityStart.Year(), activityStart.Month(), activityStart.Day(), 0, 0, 0, 0, time.UTC)
+	targetDay := time.Date(targetDate.Year(), targetDate.Month(), targetDate.Day(), 0, 0, 0, 0, time.UTC)
+	
+	if targetDay.Before(activityStartDay) {
+		return false
+	}
+
+	// If is_repeat is not null, check end_repeat_day
+	if activity.IsRepeat != nil && *activity.IsRepeat != "" {
+		if activity.EndRepeatDay != nil {
+			endRepeatDay := time.Date(activity.EndRepeatDay.Year(), activity.EndRepeatDay.Month(), activity.EndRepeatDay.Day(), 0, 0, 0, 0, time.UTC)
+			if targetDay.After(endRepeatDay) {
+				return false
+			}
+		}
+	}
+
+	// Check repeat pattern
+	switch repeatType {
+	case "Hàng ngày":
+		return true
+
+	case "Hàng tuần":
+		// Check if same day of week
+		return activityStart.Weekday() == targetDate.Weekday()
+
+	case "Hàng tháng":
+		// Check if same day of month
+		return activityStart.Day() == targetDate.Day()
+
+	case "Hàng năm":
+		// Check if same day and month
+		return activityStart.Day() == targetDate.Day() && activityStart.Month() == targetDate.Month()
+
+	default:
+		return false
+	}
+}
+
 // CreateActivityRecord creates a new activity
 func CreateActivityRecord(activity *Activity) error {
 	service := NewActivityService()
@@ -186,6 +241,15 @@ func GetActivitiesByDay(day time.Time) ([]Activity, error) {
         start, next,
     ).Order("created_at DESC").Find(&activities).Error
     return activities, err
+}
+
+// GetAllRecurringActivities gets all activities where repeat is not null
+func GetAllRecurringActivities(activities *[]Activity) error {
+	service := NewActivityService()
+	err := service.db.Where(
+		"repeat IS NOT NULL AND repeat != ''",
+	).Order("time_start ASC").Find(activities).Error
+	return err
 }
 
 // GetMonthlyFinancialSummary calculates total income and expense for a specific month
@@ -388,4 +452,90 @@ func GetMultiYearFinancialSummary(startYear, endYear int) (*MultiYearFinancialSu
 	multiYearSummary.NetAmount = multiYearSummary.TotalIncome + multiYearSummary.TotalExpense
 
 	return multiYearSummary, nil
+}
+
+// GetActivitiesByDateRange gets activities where time_start <= selectedDate and time_end >= selectedDate
+// Also includes recurring activities that repeat on the selected date
+func GetActivitiesByDateRange(selectedDate time.Time) ([]Activity, error) {
+	service := NewActivityService()
+	var regularActivities []Activity
+	var allRecurringActivities []Activity
+	
+	// Normalize selected date to start and end of day (UTC)
+	startOfDay := time.Date(selectedDate.Year(), selectedDate.Month(), selectedDate.Day(), 0, 0, 0, 0, time.UTC)
+	endOfDay := time.Date(selectedDate.Year(), selectedDate.Month(), selectedDate.Day(), 23, 59, 59, 999999999, time.UTC)
+	
+	// Query 1: Get regular activities that overlap with the selected day
+	err := service.db.Where(
+		"time_start IS NOT NULL AND time_end IS NOT NULL AND time_start <= ? AND time_end >= ?",
+		endOfDay, startOfDay,
+	).Order("time_start ASC").Find(&regularActivities).Error
+	
+	if err != nil {
+		return nil, err
+	}
+	
+	// Query 2: Get all recurring activities (where repeat is not null)
+	err = service.db.Where(
+		"repeat IS NOT NULL AND repeat != ''",
+	).Order("time_start ASC").Find(&allRecurringActivities).Error
+	
+	if err != nil {
+		return nil, err
+	}
+	
+	// Filter recurring activities that should appear on the selected date
+	var matchingRecurringActivities []Activity
+	for _, activity := range allRecurringActivities {
+		if CheckActivityRepeatsOnDate(&activity, selectedDate) {
+			matchingRecurringActivities = append(matchingRecurringActivities, activity)
+		}
+	}
+	
+	// Combine results (avoid duplicates by using a map)
+	activityMap := make(map[string]Activity)
+	
+	for _, activity := range regularActivities {
+		activityMap[activity.ID] = activity
+	}
+	
+	for _, activity := range matchingRecurringActivities {
+		activityMap[activity.ID] = activity
+	}
+	
+	// Convert map back to slice
+	var finalActivities []Activity
+	for _, activity := range activityMap {
+		finalActivities = append(finalActivities, activity)
+	}
+	
+	return finalActivities, nil
+}
+
+// GetActivitiesByDateRangeWithPagination gets activities where time_start <= selectedDate and time_end >= selectedDate with pagination
+// Also includes recurring activities that repeat on the selected date
+func GetActivitiesByDateRangeWithPagination(selectedDate time.Time, offset, limit int) ([]Activity, int64, error) {
+	// Get all matching activities (regular + recurring)
+	allActivities, err := GetActivitiesByDateRange(selectedDate)
+	if err != nil {
+		return nil, 0, err
+	}
+	
+	total := int64(len(allActivities))
+	
+	// Apply pagination manually
+	start := offset
+	end := offset + limit
+	
+	if start > len(allActivities) {
+		return []Activity{}, total, nil
+	}
+	
+	if end > len(allActivities) {
+		end = len(allActivities)
+	}
+	
+	paginatedActivities := allActivities[start:end]
+	
+	return paginatedActivities, total, nil
 }

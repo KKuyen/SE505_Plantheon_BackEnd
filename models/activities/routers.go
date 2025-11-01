@@ -101,6 +101,7 @@ func GetActivities(c *gin.Context) {
 	limitStr := c.DefaultQuery("limit", "10")
 	activityType := c.Query("type")
 	search := c.Query("search")
+	dateStr := c.Query("date") // Format: YYYY-MM-DD
 
 	page, err := strconv.Atoi(pageStr)
 	if err != nil {
@@ -119,20 +120,46 @@ func GetActivities(c *gin.Context) {
 	var activities []Activity
 	var total int64
 
-	// Handle different query types
-	if search != "" {
+	// Handle date filter first (highest priority)
+	if dateStr != "" {
+		selectedDate, err := time.Parse("2006-01-02", dateStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid date format. Use YYYY-MM-DD",
+			})
+			return
+		}
+		activities, total, err = GetActivitiesByDateRangeWithPagination(selectedDate, offset, limit)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to get activities",
+			})
+			return
+		}
+	} else if search != "" {
 		activities, total, err = SearchActivities(search, offset, limit)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to get activities",
+			})
+			return
+		}
 	} else if activityType != "" {
 		activities, total, err = GetActivitiesByType(activityType, offset, limit)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to get activities",
+			})
+			return
+		}
 	} else {
 		activities, total, err = GetAllActivities(offset, limit)
-	}
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get activities",
-		})
-		return
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to get activities",
+			})
+			return
+		}
 	}
 
 	response := ToActivitiesListResponse(activities, total, page, limit)
@@ -146,13 +173,26 @@ func GetAllActivitiesHandler(c *gin.Context) {
 	// Parse query parameters for filtering
 	activityType := c.Query("type")
 	search := c.Query("search")
+	dateStr := c.Query("date") // Format: YYYY-MM-DD
 
 	var activities []Activity
 	var total int64
 	var err error
 
-	// Handle different query types and get count
-	if search != "" {
+	// Handle date filter first (highest priority)
+	if dateStr != "" {
+		selectedDate, parseErr := time.Parse("2006-01-02", dateStr)
+		if parseErr != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid date format. Use YYYY-MM-DD",
+			})
+			return
+		}
+		activities, err = GetActivitiesByDateRange(selectedDate)
+		if err == nil {
+			total = int64(len(activities))
+		}
+	} else if search != "" {
 		activities, err = SearchAllActivities(search)
 		if err == nil {
 			total = int64(len(activities))
@@ -223,7 +263,7 @@ func GetActivitiesCountHandler(c *gin.Context) {
 	})
 }
 
-// GetActivitiesByDayHandler returns all activities of a specific day (UTC) with full info
+// GetActivitiesByDayHandler returns all activities where time_start <= date AND time_end >= date
 // GET /api/v1/activities/by-day?date=YYYY-MM-DD
 func GetActivitiesByDayHandler(c *gin.Context) {
     dateStr := c.Query("date")
@@ -237,7 +277,8 @@ func GetActivitiesByDayHandler(c *gin.Context) {
         return
     }
 
-    activities, err := GetActivitiesByDay(day)
+    // Use the new date range filter: time_start <= date AND time_end >= date
+    activities, err := GetActivitiesByDateRange(day)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get activities"})
         return
@@ -289,6 +330,14 @@ func GetActivitiesCalendarByMonthHandler(c *gin.Context) {
         return
     }
 
+    // Get all recurring activities
+    var allRecurringActivities []Activity
+    err = GetAllRecurringActivities(&allRecurringActivities)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get recurring activities"})
+        return
+    }
+
     // Prepare map date -> items
     // Determine number of days in month
     firstDay := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.UTC)
@@ -301,11 +350,48 @@ func GetActivitiesCalendarByMonthHandler(c *gin.Context) {
         dayMap[key] = []ActivityCalendarItem{}
     }
 
+    // For each regular activity, add it to ALL days it overlaps with
     for _, a := range acts {
-        if a.TimeStart != nil {
-            key := time.Date(a.TimeStart.UTC().Year(), a.TimeStart.UTC().Month(), a.TimeStart.UTC().Day(), 0, 0, 0, 0, time.UTC).Format("2006-01-02")
-            if _, ok := dayMap[key]; ok {
-                dayMap[key] = append(dayMap[key], ActivityCalendarItem{Title: a.Title})
+        if a.TimeStart != nil && a.TimeEnd != nil {
+            // Get start and end dates of the activity
+            activityStart := time.Date(a.TimeStart.UTC().Year(), a.TimeStart.UTC().Month(), a.TimeStart.UTC().Day(), 0, 0, 0, 0, time.UTC)
+            activityEnd := time.Date(a.TimeEnd.UTC().Year(), a.TimeEnd.UTC().Month(), a.TimeEnd.UTC().Day(), 0, 0, 0, 0, time.UTC)
+            
+            // Add activity to each day it spans
+            for d := 1; d <= daysInMonth; d++ {
+                currentDay := time.Date(year, time.Month(month), d, 0, 0, 0, 0, time.UTC)
+                
+                // Check if activity overlaps with this day
+                if (activityStart.Before(currentDay) || activityStart.Equal(currentDay)) && 
+                   (activityEnd.After(currentDay) || activityEnd.Equal(currentDay)) {
+                    key := currentDay.Format("2006-01-02")
+                    dayMap[key] = append(dayMap[key], ActivityCalendarItem{Title: a.Title})
+                }
+            }
+        }
+    }
+
+    // For each recurring activity, check if it should appear on each day
+    for _, a := range allRecurringActivities {
+        for d := 1; d <= daysInMonth; d++ {
+            currentDay := time.Date(year, time.Month(month), d, 0, 0, 0, 0, time.UTC)
+            
+            // Check if recurring activity should appear on this day
+            if CheckActivityRepeatsOnDate(&a, currentDay) {
+                key := currentDay.Format("2006-01-02")
+                
+                // Check if already added (avoid duplicates)
+                alreadyAdded := false
+                for _, item := range dayMap[key] {
+                    if item.Title == a.Title {
+                        alreadyAdded = true
+                        break
+                    }
+                }
+                
+                if !alreadyAdded {
+                    dayMap[key] = append(dayMap[key], ActivityCalendarItem{Title: a.Title})
+                }
             }
         }
     }
