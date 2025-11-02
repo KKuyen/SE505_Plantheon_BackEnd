@@ -390,7 +390,7 @@ func GetAnnualFinancialSummary(year int) (*AnnualFinancialSummary, error) {
 	// Query all regular activities for the entire year at once
 	var activities []Activity
 	err := service.db.Where(
-		"money IS NOT NULL AND time_start IS NOT NULL AND time_start >= ? AND time_start < ?",
+		"money IS NOT NULL AND time_start IS NOT NULL AND time_start >= ? AND time_start < ? AND (repeat IS NULL OR repeat = '')",
 		startOfYear, startOfNextYear,
 	).Find(&activities).Error
 
@@ -442,7 +442,11 @@ func GetAnnualFinancialSummary(year int) (*AnnualFinancialSummary, error) {
 
 	// Get recurring activities and calculate their contribution for each month
 	var recurringActivities []Activity
-	err = GetAllRecurringActivities(&recurringActivities)
+	err = service.db.Where(
+        "repeat IS NOT NULL AND repeat != '' AND time_start IS NOT NULL AND time_start < ? AND (end_repeat_day IS NULL OR end_repeat_day >= ?)",
+        startOfNextYear, startOfYear,
+    ).Order("time_start ASC").Find(&recurringActivities).Error
+	
 	if err == nil {
 		for month := 1; month <= 12; month++ {
 			startOfMonth := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.UTC)
@@ -487,7 +491,7 @@ func GetMultiYearFinancialSummary(startYear, endYear int) (*MultiYearFinancialSu
 	// Query all activities for the entire period at once
 	var activities []Activity
 	err := service.db.Where(
-		"money IS NOT NULL AND time_start IS NOT NULL AND time_start >= ? AND time_start < ?",
+		"money IS NOT NULL AND time_start IS NOT NULL AND time_start >= ? AND time_start < ? AND (repeat IS NULL OR repeat = '')",
 		startOfPeriod, endOfPeriod,
 	).Find(&activities).Error
 
@@ -539,7 +543,10 @@ func GetMultiYearFinancialSummary(startYear, endYear int) (*MultiYearFinancialSu
 
 	// Get recurring activities and calculate their contribution for each year
 	var recurringActivities []Activity
-	err = GetAllRecurringActivities(&recurringActivities)
+		err = service.db.Where(
+        "repeat IS NOT NULL AND repeat != '' AND time_start IS NOT NULL AND time_start < ? AND (end_repeat_day IS NULL OR end_repeat_day >= ?)",
+        endOfPeriod, startOfPeriod,
+    ).Order("time_start ASC").Find(&recurringActivities).Error
 	if err == nil {
 		for year := startYear; year <= endYear; year++ {
 			startOfYear := time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC)
