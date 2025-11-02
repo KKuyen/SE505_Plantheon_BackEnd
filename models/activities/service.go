@@ -290,7 +290,7 @@ func GetMonthlyFinancialSummary(year int, month int) (*MonthlyFinancialSummary, 
 	// Get regular activities
 	var activities []Activity
 	err := service.db.Where(
-		"money IS NOT NULL AND time_start IS NOT NULL AND time_start >= ? AND time_start < ?",
+		"money IS NOT NULL AND time_start IS NOT NULL AND time_start >= ? AND time_start < ? and (repeat IS NULL OR repeat = '')",
 		startOfMonth, startOfNextMonth,
 	).Order("time_start ASC").Find(&activities).Error
 
@@ -339,13 +339,28 @@ func GetMonthlyFinancialSummary(year int, month int) (*MonthlyFinancialSummary, 
 
 	// Get recurring activities and calculate their contribution
 	var recurringActivities []Activity
-	err = GetAllRecurringActivities(&recurringActivities)
+	endOfMonth := startOfNextMonth.AddDate(0, 0, -1) // Last day of month
+	
+	err = service.db.Where(
+        "repeat IS NOT NULL AND repeat != '' AND time_start IS NOT NULL AND time_start < ? AND (end_repeat_day IS NULL OR end_repeat_day >= ?)",
+        startOfNextMonth, startOfMonth,
+    ).Order("time_start ASC").Find(&recurringActivities).Error
+	
 	if err == nil {
-		endOfMonth := startOfNextMonth.AddDate(0, 0, -1) // Last day of month
-		
 		for _, activity := range recurringActivities {
+			// Convert money to negative if type is EXPENSE for display
+			activityResponse := activity.ToActivityResponse()
+			if activity.Money != nil && activity.Type == "EXPENSE" {
+				negativeMoney := -*activity.Money
+				if negativeMoney > 0 {
+					negativeMoney = -negativeMoney
+				}
+				activityResponse.Money = &negativeMoney
+			}
+			summary.Activities = append(summary.Activities, activityResponse)
+			
+			// Calculate total money for this recurring activity in the month
 			if activity.Money != nil {
-				// Calculate total money for this recurring activity in the month
 				totalMoney := CalculateRecurringMoneyForPeriod(&activity, startOfMonth, endOfMonth)
 				
 				if totalMoney > 0 {
@@ -356,6 +371,8 @@ func GetMonthlyFinancialSummary(year int, month int) (*MonthlyFinancialSummary, 
 			}
 		}
 	}
+
+
 
 	summary.NetAmount = summary.TotalIncome + summary.TotalExpense // Expense đã âm rồi nên cộng
 
