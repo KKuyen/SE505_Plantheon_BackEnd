@@ -48,3 +48,41 @@ func DeleteCommentByID(id string) error {
 	service := NewCommentService()
 	return service.db.Delete(&Comments{}, "id = ?", id).Error
 }
+
+// GetCommentsByPostID retrieves all comments for a specific post with user info
+func GetCommentsByPostID(postID string, viewerID string) ([]CommentResponse, error) {
+	service := NewCommentService()
+	var comments []Comments
+	if err := service.db.Where("post_id = ?", postID).Order("created_at DESC").Find(&comments).Error; err != nil {
+		return nil, err
+	}
+	
+	var commentResponses []CommentResponse
+	for _, comment := range comments {
+		// Query user info for each comment
+		var userInfo struct {
+			FullName string
+			Avatar   string
+		}
+		if err := service.db.Table("users").Select("full_name, avatar").Where("id = ?", comment.UserID).First(&userInfo).Error; err != nil {
+			// If user not found, use default values
+			userInfo.FullName = "Unknown User"
+			userInfo.Avatar = ""
+		}
+		
+		commentResponses = append(commentResponses, CommentResponse{
+			ID:        comment.ID,
+			PostID:    comment.PostID,
+			UserID:    comment.UserID,
+			FullName:  userInfo.FullName,
+			Avatar:    userInfo.Avatar,
+			Content:   comment.Content,
+			LikeNum:   comment.LikeNum,
+			IsMe:      viewerID != "" && comment.UserID == viewerID,
+			CreatedAt: comment.CreatedAt,
+			UpdatedAt: comment.UpdatedAt,
+		})
+	}
+	
+	return commentResponses, nil
+}

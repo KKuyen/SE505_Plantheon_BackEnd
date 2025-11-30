@@ -137,7 +137,17 @@ func UpdatePostHandler(c *gin.Context) {
 }
 
 func GetPostsHandler(c *gin.Context) {
-	posts, err := GetAllPosts()
+	// Extract viewer's user ID from JWT token
+	viewerID := ""
+	userInterface, exists := c.Get("user")
+	if exists {
+		user, ok := userInterface.(*users.User)
+		if ok {
+			viewerID = user.ID
+		}
+	}
+	
+	posts, err := GetAllPosts(viewerID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to get posts",
@@ -158,7 +168,18 @@ func GetPostByIDHandler(c *gin.Context) {
 		})
 		return
 	}
-	post, err := GetPostByID(id)
+	
+	// Extract viewer's user ID from JWT token
+	viewerID := ""
+	userInterface, exists := c.Get("user")
+	if exists {
+		user, ok := userInterface.(*users.User)
+		if ok {
+			viewerID = user.ID
+		}
+	}
+	
+	post, err := GetPostByID(id, viewerID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 				"error": err.Error(),
@@ -198,7 +219,25 @@ func LikePostHandler(c *gin.Context) {
 		})
 		return
 	}
-	if err := LikePost(id); err != nil {
+	
+	// Extract user ID from JWT token
+	userInterface, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User not found in context",
+		})
+		return
+	}
+
+	user, ok := userInterface.(*users.User)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Invalid user format",
+		})
+		return
+	}
+	
+	if err := LikePost(id, user.ID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
@@ -217,7 +256,25 @@ func UnlikePostHandler(c *gin.Context) {
 		})
 		return
 	}
-	if err := UnlikePost(id); err != nil {
+	
+	// Extract user ID from JWT token
+	userInterface, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User not found in context",
+		})
+		return
+	}
+
+	user, ok := userInterface.(*users.User)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Invalid user format",
+		})
+		return
+	}
+	
+	if err := UnlikePost(id, user.ID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
@@ -255,7 +312,18 @@ func GetPostsByUserIDHandler(c *gin.Context) {
 		})
 		return
 	}
-	posts, err := GetPostsByUserID(userId)
+	
+	// Extract viewer's user ID from JWT token
+	viewerID := ""
+	userInterface, exists := c.Get("user")
+	if exists {
+		user, ok := userInterface.(*users.User)
+		if ok {
+			viewerID = user.ID
+		}
+	}
+	
+	posts, err := GetPostsByUserID(userId, viewerID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),

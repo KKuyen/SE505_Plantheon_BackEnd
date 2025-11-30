@@ -139,3 +139,32 @@ func DeleteCommentHandler(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Comment deleted successfully"})
 }
+
+func GetCommentsByPostIDHandler(c *gin.Context) {
+	postID := c.Param("id")
+	if postID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Post ID is required"})
+		return
+	}
+	
+	// Extract viewer's user ID from JWT token
+	viewerID := ""
+	userInterface, exists := c.Get("user")
+	if exists {
+		user, ok := userInterface.(*users.User)
+		if ok {
+			viewerID = user.ID
+		}
+	}
+	
+	comments, err := GetCommentsByPostID(postID, viewerID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get comments"})
+		return
+	}
+	
+	c.JSON(http.StatusOK, gin.H{
+		"data": comments,
+		"total": len(comments),
+	})
+}

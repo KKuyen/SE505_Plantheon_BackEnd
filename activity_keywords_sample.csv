@@ -1,0 +1,11 @@
+ClassName,keywordName,keywordDescription,keywordType,keywordDayOffset,KeywordIsFreeTime,keywordHourTime,timeDuration
+Apple_Scab,Phun thuốc diệt nấm,Sử dụng Edifenphos 50.0% EC phun định kỳ 7-10 ngày,TREATMENT,0,false,6,30
+Apple_Scab,Vệ sinh đồng ruộng,Loại bỏ lá bệnh cỏ dại và tàn dư thực vật,PREVENTION,0,true,,
+Tomato___Late_blight,Tưới nước hợp lý,Tưới nước vào gốc tránh làm ướt lá,PREVENTION,0,true,,15
+Tomato___Late_blight,Kiểm tra định kỳ,Theo dõi sự phát triển của cây và dấu hiệu bệnh,MONITORING,7,false,8,20
+Pepper__bell___Bacterial_spot,Phun kháng sinh,Sử dụng streptomycin hoặc copper-based fungicide,TREATMENT,0,false,7,45
+Pepper__bell___Bacterial_spot,Luân canh cây trồng,Tránh trồng cây họ cà trong 2-3 năm,PREVENTION,-30,true,,
+Pepper__bell___Bacterial_spot,Khử trùng công cụ,Vệ sinh dụng cụ canh tác sau mỗi lần sử dụng,PREVENTION,0,true,,10
+Potato___Early_blight,Phun thuốc bảo vệ,Sử dụng Mancozeb hoặc Chlorothalonil,TREATMENT,0,false,6,40
+Potato___Early_blight,Bón phân cân đối,Tăng cường dinh dưỡng cho cây khoẻ mạnh,PREVENTION,0,true,,
+Potato___Early_blight,Thu hoạch đúng lúc,Tránh để củ lâu trong đất khi cây đã chín,HARVESTING,0,true,,

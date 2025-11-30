@@ -9,7 +9,8 @@ type CommentResponse struct {
 	FullName  string    `json:"full_name"`
 	Avatar    string    `json:"avatar"`
 	Content   string    `json:"content"`
-	LikeNum   int       `json:"like_number"`
+	LikeNum   int64     `json:"like_number"`
+	IsMe      bool      `json:"is_me"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

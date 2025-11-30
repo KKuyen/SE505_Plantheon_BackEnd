@@ -6,8 +6,10 @@ import (
 
 	"plantheon-backend/common"
 	"plantheon-backend/models/activities"
+	"plantheon-backend/models/activity_keywords"
 	"plantheon-backend/models/blogs"
 	"plantheon-backend/models/comments"
+	"plantheon-backend/models/disease_activity_keywords"
 	"plantheon-backend/models/diseases"
 	"plantheon-backend/models/guide_stages"
 	"plantheon-backend/models/noti"
@@ -39,6 +41,8 @@ func main() {
 		&diseases.Disease{},
 		&scan_history.ScanHistory{},
 		&activities.Activity{},
+		&activity_keywords.ActivityKeyword{},
+		&disease_activity_keywords.DiseaseActivityKeyword{},
 		&post_likes.PostLike{},
 		&blogs.Blog{},
 		&plants.Plant{},
@@ -73,7 +77,7 @@ func main() {
 		// Health check
 		api.GET("/health", func(c *gin.Context) {
 			c.JSON(200, gin.H{
-				"status": "OK",
+				"status":  "OK",
 				"message": "Plantheon Backend API is running",
 			})
 		})
@@ -99,7 +103,7 @@ func main() {
 		{
 			// Add admin-only user management endpoints here
 			// adminUserRoutes.GET("", users.GetAllUsers)
-			// adminUserRoutes.GET("/:id", users.GetUserByIDHandler)  
+			// adminUserRoutes.GET("/:id", users.GetUserByIDHandler)
 			// adminUserRoutes.PUT("/:id/role", users.UpdateUserRole)
 			// adminUserRoutes.DELETE("/:id", users.DeleteUserHandler)
 		}
@@ -148,7 +152,43 @@ func main() {
 		adminActivityRoutes := api.Group("/activities")
 		adminActivityRoutes.Use(users.RequireAdmin())
 		{
-			
+
+		}
+
+		// Activity Keywords routes
+		activityKeywordRoutes := api.Group("/activity-keywords")
+		{
+			// Public routes (anyone can view)
+			activityKeywordRoutes.GET("", activity_keywords.GetAllActivityKeywordsHandler)
+			activityKeywordRoutes.GET("/:id", activity_keywords.GetActivityKeywordByIDHandler)
+			activityKeywordRoutes.GET("/search", activity_keywords.SearchActivityKeywordsHandler)
+			activityKeywordRoutes.GET("/disease/:disease_id", disease_activity_keywords.GetActivityKeywordsForDiseaseHandler)
+		}
+
+		// Admin-only Activity Keywords routes
+		adminActivityKeywordRoutes := api.Group("/activity-keywords")
+		adminActivityKeywordRoutes.Use(users.RequireAdmin())
+		{
+			adminActivityKeywordRoutes.POST("", activity_keywords.CreateActivityKeywordHandler)
+			adminActivityKeywordRoutes.PUT("/:id", activity_keywords.UpdateActivityKeywordHandler)
+			adminActivityKeywordRoutes.DELETE("/:id", activity_keywords.DeleteActivityKeywordHandler)
+		}
+
+		// Disease-Activity Keywords relationship routes
+		diseaseActivityKeywordRoutes := api.Group("/disease-activity-keywords")
+		{
+			// Public routes - anyone can view
+			diseaseActivityKeywordRoutes.GET("/disease/:disease_id", disease_activity_keywords.GetActivityKeywordsForDiseaseHandler)
+		}
+
+		// Admin-only Disease-Activity Keywords routes
+		adminDiseaseActivityKeywordRoutes := api.Group("/disease-activity-keywords")
+		adminDiseaseActivityKeywordRoutes.Use(users.RequireAdmin())
+		{
+			adminDiseaseActivityKeywordRoutes.POST("/disease/:disease_id", disease_activity_keywords.AddActivityKeywordToDiseaseHandler)
+			adminDiseaseActivityKeywordRoutes.DELETE("/disease/:disease_id/keyword/:keyword_id", disease_activity_keywords.RemoveActivityKeywordFromDiseaseHandler)
+			adminDiseaseActivityKeywordRoutes.PUT("/disease/:disease_id", disease_activity_keywords.SetActivityKeywordsForDiseaseHandler)
+			adminDiseaseActivityKeywordRoutes.POST("/import-csv", disease_activity_keywords.ImportActivityKeywordsFromCSVHandler)
 		}
 
 		// Scan History routes (protected - users can manage their own scan history)
@@ -173,6 +213,7 @@ func main() {
 			postRoutes.PUT("/:id/like", posts.LikePostHandler)
 			postRoutes.PUT("/:id/unlike", posts.UnlikePostHandler)
 			postRoutes.PUT("/:id/share", posts.SharePostHandler)
+			postRoutes.GET("/:id/comments", comments.GetCommentsByPostIDHandler)
 			postRoutes.POST("/:id/comments", comments.AddCommentHandler)
 			postRoutes.PUT("/:id/comments", comments.UpdateCommentHandler)
 			postRoutes.DELETE("/comments/:commentId", comments.DeleteCommentHandler)
@@ -186,7 +227,7 @@ func main() {
 			guideStageRoutes.GET("/:id", guide_stages.GetGuideStageByIDHandler)
 			guideStageRoutes.GET("/plant/:plant_id", guide_stages.GetGuideStagesByPlantIDHandler)
 		}
-		
+
 		// Admin-only Guide Stage routes
 		adminGuideStageRoutes := api.Group("/guide-stages")
 		adminGuideStageRoutes.Use(users.RequireAdmin())
@@ -203,7 +244,7 @@ func main() {
 			subGuideStageRoutes.GET("/:id", sub_guide_stages.GetSubGuideStageByIDHandler)
 			subGuideStageRoutes.GET("/guide-stage/:guide_stage_id", sub_guide_stages.GetSubGuideStagesByGuideStageIDHandler)
 		}
-		
+
 		// Admin-only Sub Guide Stage routes
 		adminSubGuideStageRoutes := api.Group("/sub-guide-stages")
 		adminSubGuideStageRoutes.Use(users.RequireAdmin())
@@ -220,7 +261,7 @@ func main() {
 			plantRoutes.GET("", plants.GetAllPlantsHandler)
 			plantRoutes.GET("/:id", plants.GetPlantByIDHandler)
 		}
-		
+
 		// Admin-only Plant routes
 		adminPlantRoutes := api.Group("/plants")
 		adminPlantRoutes.Use(users.RequireAdmin())
@@ -243,8 +284,8 @@ func main() {
 		{
 			adminNewsRoutes.POST("", blogs.CreateNewsHandler)
 			adminNewsRoutes.PUT("/:id", blogs.UpdateNewsHandler)
-				adminNewsRoutes.DELETE("/:id", blogs.DeleteNewsHandler)
-			}
+			adminNewsRoutes.DELETE("/:id", blogs.DeleteNewsHandler)
+		}
 
 		notificationRoutes := api.Group("/notification")
 		notificationRoutes.Use(users.AuthMiddleware())
