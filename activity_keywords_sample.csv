@@ -1,11 +1,221 @@
 ClassName,keywordName,keywordDescription,keywordType,keywordDayOffset,KeywordIsFreeTime,keywordHourTime,timeDuration
-Apple_Scab,Phun thuốc diệt nấm,Sử dụng Edifenphos 50.0% EC phun định kỳ 7-10 ngày,TREATMENT,0,false,6,30
-Apple_Scab,Vệ sinh đồng ruộng,Loại bỏ lá bệnh cỏ dại và tàn dư thực vật,PREVENTION,0,true,,
-Tomato___Late_blight,Tưới nước hợp lý,Tưới nước vào gốc tránh làm ướt lá,PREVENTION,0,true,,15
-Tomato___Late_blight,Kiểm tra định kỳ,Theo dõi sự phát triển của cây và dấu hiệu bệnh,MONITORING,7,false,8,20
-Pepper__bell___Bacterial_spot,Phun kháng sinh,Sử dụng streptomycin hoặc copper-based fungicide,TREATMENT,0,false,7,45
-Pepper__bell___Bacterial_spot,Luân canh cây trồng,Tránh trồng cây họ cà trong 2-3 năm,PREVENTION,-30,true,,
-Pepper__bell___Bacterial_spot,Khử trùng công cụ,Vệ sinh dụng cụ canh tác sau mỗi lần sử dụng,PREVENTION,0,true,,10
-Potato___Early_blight,Phun thuốc bảo vệ,Sử dụng Mancozeb hoặc Chlorothalonil,TREATMENT,0,false,6,40
-Potato___Early_blight,Bón phân cân đối,Tăng cường dinh dưỡng cho cây khoẻ mạnh,PREVENTION,0,true,,
-Potato___Early_blight,Thu hoạch đúng lúc,Tránh để củ lâu trong đất khi cây đã chín,HARVESTING,0,true,,
+Sugarcane_Mawa,Phun thuốc đặc trị rệp,Phun Imidacloprid hoặc Dinotefuran ướt đẫm ổ rệp,DISEASE,0,false,16,1
+Sugarcane_Mawa,Vệ sinh lá muội đen,Rửa trôi lớp muội đen và cắt bỏ lá bị hại nặng,DISEASE,0,true,7,1
+Sugarcane_Mawa,Kiểm tra mật độ rệp,Kiểm tra lại mặt dưới lá xem rệp còn sống không,DISEASE,3,true,8,1
+Sugarcane_Dried_Leaves,Tưới cấp ẩm khẩn cấp,Tưới đẫm nước vào gốc và phun sương làm mát lá,CLIMATE,0,false,17,1
+Sugarcane_Dried_Leaves,Che phủ gốc giữ ẩm,Sử dụng rơm rạ hoặc lá khô che phủ gốc,CLIMATE,0,true,8,1
+Sugarcane_Dried_Leaves,Bón Kali tăng đề kháng,Bón bổ sung Kali giúp cây chịu hạn tốt hơn,TECHNIQUE,2,false,6,1
+Coffee_Healthy,Thăm vườn định kỳ,Kiểm tra cành lá để phát hiện sớm dấu hiệu sâu bệnh,TECHNIQUE,0,true,7,1
+Coffee_Healthy,Bón phân cân đối,Bón NPK theo quy trình để duy trì sức khỏe cây,TECHNIQUE,0,false,7,1
+Coffee_Healthy,Tỉa cành tạo tán,Cắt tỉa cành tăm cành vượt để cây thông thoáng,TECHNIQUE,0,true,8,2
+Mango_Bacterial_Canker,Phun thuốc gốc đồng,Phun Copper oxychloride hoặc Kasumin ướt đều tán lá,DISEASE,0,false,7,1
+Mango_Bacterial_Canker,Cắt tỉa cành loét,Cắt bỏ cành quả bị bệnh dưới vết loét 20cm,DISEASE,0,true,9,1
+Mango_Bacterial_Canker,Thu gom tiêu hủy,Thu gom toàn bộ cành lá bệnh đem đốt bỏ,DISEASE,0,true,16,1
+Mango_Powdery_Mildew,Phun thuốc nấm phấn trắng,Sử dụng thuốc chứa Lưu huỳnh hoặc Hexaconazole,DISEASE,0,false,16,1
+Mango_Powdery_Mildew,Rung hoa rụng,Rung nhẹ cành để hoa nhiễm bệnh rụng bớt,DISEASE,1,true,8,1
+Mango_Powdery_Mildew,Bón phân dưỡng quả,Bón phân vi lượng giúp quả non phát triển tốt,TECHNIQUE,5,false,7,1
+Grape_Powdery_Mildew,Xử lý phấn trắng nho,Phun Penconazole hoặc Tetraconazole,DISEASE,0,false,7,1
+Grape_Powdery_Mildew,Tỉa lá già,Tỉa bớt lá già quanh chùm quả để tạo độ thoáng,DISEASE,0,true,8,1
+Grape_Powdery_Mildew,Phun rửa vườn,Phun nước áp lực nhẹ rửa trôi bào tử nấm,DISEASE,1,false,6,1
+Mango_Healthy,Kiểm tra sâu bệnh,Quan sát lá non và chùm hoa phát hiện bọ trĩ,TECHNIQUE,0,true,7,1
+Mango_Healthy,Tưới nước giữ ẩm,Duy trì độ ẩm đất ổn định cho cây nuôi quả,TECHNIQUE,0,false,17,1
+Banana_Healthy_Leaf,Vệ sinh vườn chuối,Cắt bỏ lá già lá khô để vườn thông thoáng,TECHNIQUE,0,true,8,1
+Banana_Healthy_Leaf,Kiểm tra buồng quả,Bao buồng quả để tránh côn trùng châm chích,TECHNIQUE,0,true,9,1
+Banana_Insect_Pest,Phun thuốc sâu sinh học,Sử dụng Spinosad hoặc Abamectin trừ sâu rệp,DISEASE,0,false,16,1
+Banana_Insect_Pest,Bao buồng quả,Dùng túi bao buồng chuyên dụng bảo vệ quả non,DISEASE,0,true,8,1
+Banana_Insect_Pest,Vệ sinh bẹ lá,Làm sạch bẹ lá khô nơi sâu trú ẩn,DISEASE,1,true,9,1
+Mango_Cutting_Weevil,Bắt mối trưởng thành,Soi đèn bắt mối vào buổi tối (19h-21h),DISEASE,0,false,19,1
+Mango_Cutting_Weevil,Phun thuốc xua đuổi,Phun Cypermethrin để diệt thành trùng,DISEASE,1,false,17,1
+Mango_Cutting_Weevil,Thu gom lá bị cắt,Nhặt lá bị cắt rơi xuống đất đem tiêu hủy,DISEASE,2,true,8,1
+Mango_Gall_Midge,Phun ruồi đục quả,Phun thuốc lưu dẫn khi quả đạt kích thước đầu đũa,DISEASE,0,false,8,1
+Mango_Gall_Midge,Bao trái sớm,Tiến hành bao trái ngay sau khi phun thuốc,DISEASE,1,true,9,2
+Mango_Gall_Midge,Thu gom quả rụng,Nhặt quả rụng chứa ấu trùng đem ngâm nước vôi,DISEASE,2,true,16,1
+Papaya_Ringspot,Tiêu hủy cây bệnh,Chặt bỏ và đốt ngay cây bị bệnh nặng,DISEASE,0,false,9,1
+Papaya_Ringspot,Phun trừ rệp môi giới,Diệt rệp muội truyền virus bằng dầu khoáng,DISEASE,0,false,16,1
+Papaya_Ringspot,Kiểm tra cây lân cận,Theo dõi sát các cây xung quanh,DISEASE,3,true,8,1
+Banana_Black_Sigatoka,Phun nấm Sigatoka đen,Phun Mancozeb + Dầu khoáng chuối,DISEASE,0,false,7,1
+Banana_Black_Sigatoka,Cắt lá bệnh,Cắt bỏ phần lá bị cháy đen để giảm nguồn lây,DISEASE,0,true,9,1
+Banana_Black_Sigatoka,Mương thoát nước,Khơi thông mương rãnh giảm độ ẩm vườn,CLIMATE,2,true,8,2
+Papaya_Mosaic,Nhổ bỏ cây khảm,Đào gốc và tiêu hủy cây bệnh xa vườn,DISEASE,0,false,8,1
+Papaya_Mosaic,Khử trùng dụng cụ,Ngâm dao kéo vào cồn hoặc nước javel,DISEASE,0,true,7,1
+Papaya_Mosaic,Phun rầy mềm,Diệt rầy mềm truyền bệnh mosaic,DISEASE,1,false,16,1
+Tea_Healthy,Hái búp đúng kỹ thuật,Hái 1 tôm 2 lá để cây tái sinh tốt,TECHNIQUE,0,false,7,2
+Tea_Healthy,Làm cỏ quanh gốc,Làm sạch cỏ dại cạnh tranh dinh dưỡng,TECHNIQUE,2,true,8,1
+Papaya_Curl,Bổ sung vi lượng,Phun Kẽm (Zn) và Bo qua lá,TECHNIQUE,0,false,7,1
+Papaya_Curl,Tưới nước đều đặn,Đảm bảo đất không quá khô hoặc quá ướt,TECHNIQUE,0,false,17,1
+Papaya_Curl,Kiểm tra rễ,Kiểm tra xem rễ có bị tuyến trùng không,DISEASE,2,true,8,1
+Tea_Red_Spot,Phun trị đốm đỏ,Sử dụng Copper oxychloride ướt đều 2 mặt lá,DISEASE,0,false,8,1
+Tea_Red_Spot,Tỉa cành tăm,Loại bỏ cành nhỏ yếu để vườn chè thoáng gió,TECHNIQUE,1,true,9,1
+Papaya_Mite_disease,Phun thuốc đặc trị nhện,Sử dụng Abamectin phun kỹ mặt dưới lá,DISEASE,0,false,17,1
+Papaya_Mite_disease,Tưới phun mưa,Tưới phun mưa áp lực mạnh để rửa trôi nhện,TECHNIQUE,1,false,16,1
+Papaya_Mite_disease,Kiểm tra mặt dưới lá,Dùng kính lúp soi mật độ nhện sau phun 3 ngày,DISEASE,3,true,8,1
+Coffee_Phoma,Phun thuốc nấm Phoma,Phun Mancozeb hoặc Carbendazim lên chồi non,DISEASE,0,false,7,1
+Coffee_Phoma,Cắt bỏ chồi bệnh,Cắt bỏ các chồi lá bị đen thối,DISEASE,0,true,9,1
+Coffee_Phoma,Bón vôi khử trùng,Rắc vôi bột quanh gốc để diệt nấm đất,DISEASE,2,false,9,1
+Corn_Healthy,Thăm đồng thường xuyên,Kiểm tra tình hình sâu keo mùa thu,TECHNIQUE,0,true,7,1
+Corn_Healthy,Vun gốc bón phân,Vun đất vào gốc kết hợp bón thúc,TECHNIQUE,0,false,7,2
+Banana_Moko,Khoanh vùng ổ dịch,Cách ly khu vực có cây bệnh héo rũ,DISEASE,0,true,8,1
+Banana_Moko,Tiêu hủy và rắc vôi,Đào bỏ cây bệnh rắc vôi bột xử lý hố trồng,DISEASE,0,false,8,2
+Banana_Moko,Khử trùng giày dép,Vệ sinh ủng và công cụ trước khi sang vườn khác,DISEASE,0,true,7,1
+Mango_Anthracnose,Phun ngừa thán thư,Phun Copper/Mancozeb trước khi hoa nở,DISEASE,0,false,16,1
+Mango_Anthracnose,Cắt tỉa cành vô hiệu,Tạo độ thông thoáng cho tán cây,DISEASE,1,true,8,1
+Mango_Anthracnose,Bao trái,Bao trái khi quả đạt kích thước trứng gà,TECHNIQUE,15,true,8,2
+Papaya_Anthracnose,Phun thuốc bảo vệ quả,Phun Azoxystrobin định kỳ,DISEASE,0,false,7,1
+Papaya_Anthracnose,Thu gom quả thối,Loại bỏ quả bệnh ra khỏi vườn ngay lập tức,DISEASE,0,true,8,1
+Papaya_Anthracnose,Xử lý nước nóng,Nhúng quả sau thu hoạch vào nước ấm 50 độ C,TECHNIQUE,0,false,10,1
+Banana_Panama,Cách ly cây bệnh,Không tưới nước chảy tràn từ cây bệnh sang cây khỏe,DISEASE,0,true,7,1
+Banana_Panama,Tiêu hủy cụm chuối,Đánh bỏ toàn bộ khóm chuối nhiễm bệnh,DISEASE,1,false,8,2
+Banana_Panama,Sử dụng nấm đối kháng,Tưới Trichoderma vào gốc các cây lân cận,DISEASE,2,false,16,1
+Corn_Blight,Phun thuốc khô lá,Dùng Propiconazole phun khi vết bệnh mới xuất hiện,DISEASE,0,false,7,1
+Corn_Blight,Bón Kali tăng lực,Bón thêm Kali để lá cứng cáp,TECHNIQUE,1,false,8,1
+Corn_Blight,Vệ sinh lá già,Tước bỏ các lá già bị bệnh ở gốc,DISEASE,2,true,16,1
+Banana_Yellow_Sigatoka,Phun thuốc nấm lá,Phun Mancozeb kết hợp chất bám dính,DISEASE,0,false,7,1
+Banana_Yellow_Sigatoka,Cắt lá vệ sinh,Cắt bỏ phần lá vàng cháy,DISEASE,1,true,8,1
+Mango_Die_Back,Cắt bỏ cành khô,Cắt sâu xuống phần gỗ tươi 20cm,DISEASE,0,true,9,1
+Mango_Die_Back,Bôi keo liền sẹo,Bôi thuốc nấm/keo liền da vào vết cắt lớn,DISEASE,0,true,10,1
+Mango_Die_Back,Phun rửa vườn,Phun thuốc gốc đồng toàn bộ cây sau cắt tỉa,DISEASE,1,false,8,1
+Papaya_Healthy,Kiểm tra cổ rễ,Quan sát gốc xem có dấu hiệu thối lở không,TECHNIQUE,0,true,7,1
+Papaya_Healthy,Làm cỏ vun gốc,Giữ sạch cỏ dại quanh gốc 1m,TECHNIQUE,0,true,8,1
+Cassava_Green_Mite,Phun thuốc trừ nhện,Phun Abamectin ướt đều ngọn sắn,DISEASE,0,false,17,1
+Cassava_Green_Mite,Thả thiên địch,Bảo vệ bọ rùa và nhện bắt mồi,DISEASE,0,true,8,1
+Cassava_Green_Mite,Cắt ngọn nặng,Cắt bỏ ngọn sắn bị chùn ngọn quá nặng,DISEASE,1,true,9,1
+Sugarcane_Red_Spot,Phun thuốc nấm,Sử dụng Propiconazole hoặc Tebuconazole,DISEASE,0,false,7,1
+Sugarcane_Red_Spot,Bóc lá già,Bóc lá khô để ruộng mía thông thoáng,TECHNIQUE,2,true,8,2
+Sugarcane_Red_Spot,Tiêu thoát nước,Khơi rãnh không để ruộng đọng nước,CLIMATE,3,true,9,1
+Corn_Common_Rust,Phun rỉ sắt,Phun Azoxystrobin khi tỷ lệ bệnh >5%,DISEASE,0,false,8,1
+Corn_Common_Rust,Luân canh cây trồng,Lên kế hoạch luân canh sau vụ thu hoạch,TECHNIQUE,0,true,8,1
+Corn_Common_Rust,Bón cân đối NPK,Tránh bón thừa Đạm,TECHNIQUE,1,false,7,1
+Coffee_Miner,Đặt bẫy Pheromone,Treo bẫy dẫn dụ con cái trưởng thành,DISEASE,0,true,8,1
+Coffee_Miner,Phun nấm ký sinh,Phun Beauveria bassiana (nấm trắng),DISEASE,0,false,16,1
+Coffee_Miner,Vệ sinh quả sót,Thu gom quả rụng và quả khô trên cây,DISEASE,2,true,9,1
+Tea_Helopeltis,Phun bọ xít muỗi,Phun Imidacloprid vào sáng sớm hoặc chiều mát,DISEASE,0,false,6,1
+Tea_Helopeltis,Phát quang bụi rậm,Phát cỏ xung quanh nương chè,DISEASE,1,true,8,1
+Tea_Helopeltis,Kiểm tra búp chè,Đếm mật độ vết chích trên búp,DISEASE,3,true,9,1
+Tea_Brown_Blight,Phun thuốc trị cháy lá,Dùng Hexaconazole phun ướt đều tán,DISEASE,0,false,7,1
+Tea_Brown_Blight,Hái chạy bệnh,Hái kỹ các búp và lá bệnh đem tiêu hủy,DISEASE,0,true,8,2
+Tea_Brown_Blight,Bón phân Kalisunphat,Tăng cường Kali giúp lá dày,TECHNIQUE,2,false,8,1
+Sugarcane_Mites,Phun thuốc đặc trị nhện,Sử dụng Fenpyroximate hoặc Abamectin,DISEASE,0,false,17,1
+Sugarcane_Mites,Tưới nước giữ ẩm,Duy trì độ ẩm đất cao để hạn chế nhện,CLIMATE,0,false,6,1
+Sugarcane_Mites,Vệ sinh đồng ruộng,Đốt hoặc vùi lá mía khô sau thu hoạch,DISEASE,5,true,9,2
+Corn_Gray_Leaf_Spot,Phun đốm xám,Sử dụng Pyraclostrobin,DISEASE,0,false,8,1
+Corn_Gray_Leaf_Spot,Cày vùi tàn dư,Cày sâu vùi lấp thân lá ngô sau vụ,DISEASE,0,true,8,2
+Grape_Black_Rot,Phun thuốc thối đen,Phun Myclobutanil hoặc Captan,DISEASE,0,false,7,1
+Grape_Black_Rot,Loại bỏ quả khô,Cắt bỏ các chùm quả khô (mummified) còn treo trên cây,DISEASE,0,true,8,1
+Grape_Black_Rot,Làm cỏ dưới giàn,Giữ sạch cỏ dại dưới tán giàn nho,DISEASE,1,true,9,1
+Rice_Leaf_Blast,Phun đạo ôn lá,Phun Tricyclazole ngay khi thấy chấm bệnh,DISEASE,0,false,7,1
+Rice_Leaf_Blast,Giữ nước ruộng,Duy trì mực nước ruộng 3-5cm,CLIMATE,0,false,6,1
+Rice_Leaf_Blast,Ngừng bón Đạm,Tuyệt đối không bón thêm phân Đạm lúc này,TECHNIQUE,0,true,7,1
+Tomato_Mosaic_Virus,Nhổ bỏ cây bệnh,Cho vào bao kín đem đi tiêu hủy,DISEASE,0,false,7,1
+Tomato_Mosaic_Virus,Rửa tay xà phòng,Rửa tay kỹ sau khi thao tác với cây bệnh,DISEASE,0,true,8,1
+Tomato_Mosaic_Virus,Diệt rệp muội,Phun phòng trừ rệp truyền virus,DISEASE,1,false,16,1
+Tomato_Late_Blight,Phun mốc sương,Phun luân phiên Metalaxyl và Mancozeb,DISEASE,0,false,16,1
+Tomato_Late_Blight,Tỉa lá chân,Tỉa bỏ lá già sát gốc cho thoáng,DISEASE,0,true,8,1
+Tomato_Late_Blight,Dừng tưới phun,Chuyển sang tưới nhỏ giọt hoặc tưới gốc,TECHNIQUE,0,true,7,1
+Tomato_Yellow_Leaf_Curl_Virus,Phun trừ bọ phấn,Dùng thuốc đặc trị bọ phấn trắng,DISEASE,0,false,7,1
+Tomato_Yellow_Leaf_Curl_Virus,Nhổ cây lùn xoăn,Loại bỏ cây bị bệnh nặng không thể hồi phục,DISEASE,0,true,9,1
+Tomato_Yellow_Leaf_Curl_Virus,Treo bẫy dính vàng,Treo bẫy màu vàng để bắt bọ phấn,DISEASE,1,true,8,1
+Tomato_Leaf_Mold,Phun mốc lá,Sử dụng Chlorothalonil phun mặt dưới lá,DISEASE,0,false,8,1
+Tomato_Leaf_Mold,Thông gió nhà kính,Mở cửa thông gió giảm độ ẩm,CLIMATE,0,true,10,1
+Papaya_Bacterial_Spot,Phun đốm vi khuẩn,Sử dụng thuốc gốc Đồng (Copper),DISEASE,0,false,7,1
+Papaya_Bacterial_Spot,Ngắt lá bệnh,Ngắt bỏ lá già bị đốm nặng,DISEASE,0,true,9,1
+Apple_Scab,Phun trị ghẻ táo,Phun Difenoconazole hoặc Captan,DISEASE,0,false,8,1
+Apple_Scab,Quét dọn lá rụng,Thu gom lá rụng dưới gốc đem đốt,DISEASE,0,true,9,1
+Apple_Scab,Tỉa cành vượt,Tỉa cành để ánh sáng lọt vào tán cây,TECHNIQUE,2,true,8,2
+Potato_Healthy,Vun gốc khoai,Vun cao luống để củ không lộ sáng,TECHNIQUE,0,true,7,2
+Potato_Healthy,Kiểm tra sâu bệnh,Soi đèn tìm sâu xám vào ban đêm,TECHNIQUE,0,false,20,1
+Tea_Gray_Blight,Phun chấm xám,Sử dụng Carbendazim,DISEASE,0,false,7,1
+Tea_Gray_Blight,Cân đối phân bón,Bón đủ Kali và Lân,TECHNIQUE,2,false,8,1
+Tea_Algal_Spot,Phun đốm tảo,Phun Đồng đỏ (Copper Oxide),DISEASE,0,false,8,1
+Tea_Algal_Spot,Rong tỉa cây che bóng,Tỉa bớt cây che bóng để vườn nhiều sáng,TECHNIQUE,1,true,9,1
+Apple_Healthy,Kiểm tra quả,Kiểm tra rệp sáp ở cuống quả,TECHNIQUE,0,true,8,1
+Apple_Healthy,Bón phân dưỡng cây,Bón phân NPK bổ sung vi lượng,TECHNIQUE,0,false,7,1
+Grape_Healthy,Buộc cành,Buộc cố định cành nho vào giàn,TECHNIQUE,0,true,8,1
+Grape_Healthy,Tỉa chồi nách,Loại bỏ chồi nách không cần thiết,TECHNIQUE,0,true,9,1
+Banana_Bract_Mosaic_Virus,Đào bỏ cây bệnh,Tiêu hủy cây có sọc khảm trên mo,DISEASE,0,false,8,1
+Banana_Bract_Mosaic_Virus,Diệt rệp sáp,Phun thuốc trừ rệp sáp truyền bệnh,DISEASE,1,false,16,1
+Rice_Bacterial_Leaf_Blight,Phun vi khuẩn bạc lá,Phun thuốc kháng sinh Kasugamycin,DISEASE,0,false,16,1
+Rice_Bacterial_Leaf_Blight,Rút nước,Rút nước để ruộng khô ráo,CLIMATE,0,false,15,1
+Rice_Brown_Spot,Phun đốm nâu,Sử dụng Iprodione hoặc Propiconazole,DISEASE,0,false,8,1
+Rice_Brown_Spot,Bón bổ sung Kali,Bón Kali giúp lúa sáng hạt,TECHNIQUE,1,false,7,1
+Rice_Leaf_Scald,Phun khô vằn,Sử dụng Validamycin A,DISEASE,0,false,7,1
+Rice_Leaf_Scald,Vệ sinh bờ cỏ,Cắt sạch cỏ bờ ruộng,DISEASE,2,true,8,1
+Rice_Narrow_Brown_Spot,Phun đốm sọc,Sử dụng Azoxystrobin + Difenoconazole,DISEASE,0,false,8,1
+Rice_Narrow_Brown_Spot,Kiểm tra lá đòng,Theo dõi vết bệnh trên lá đòng,DISEASE,3,true,9,1
+Tomato_Target_Spot,Phun đốm vòng,Sử dụng Fluopyram,DISEASE,0,false,16,1
+Tomato_Target_Spot,Cắt lá già,Loại bỏ lá già sát đất để giảm ẩm,DISEASE,0,true,8,1
+Corn_Streak_Virus,Nhổ cây lùn sọc,Nhổ bỏ cây bệnh ra khỏi ruộng,DISEASE,0,true,9,1
+Corn_Streak_Virus,Diệt rầy lưng trắng,Phun thuốc diệt rầy môi giới,DISEASE,0,false,7,1
+Tomato_Spider_Mites,Phun nhện đỏ,Sử dụng dầu khoáng hoặc Abamectin,DISEASE,0,false,17,1
+Tomato_Spider_Mites,Tưới phun sương,Tưới làm mát vườn để hạn chế nhện,CLIMATE,1,false,10,1
+Tomato_Spider_Mites,Kiểm tra kẽ lá,Dùng kính lúp soi tìm trứng nhện,DISEASE,3,true,8,1
+Apple_Cedar_Apple_Rust,Phun rỉ sắt táo,Phun Mancozeb hoặc Myclobutanil,DISEASE,0,false,8,1
+Apple_Cedar_Apple_Rust,Loại bỏ cây ký chủ,Chặt bỏ cây bách/tùng gần vườn táo,DISEASE,0,true,9,2
+Apple_Black_Rot,Phun thối đen,Phun Captan bảo vệ quả,DISEASE,0,false,8,1
+Apple_Black_Rot,Thu hủy quả thối,Không để quả thối rụng dưới đất,DISEASE,0,true,9,1
+Sugarcane_Yellow_Leaf,Đánh dấu cây bệnh,Đánh dấu để không lấy làm giống vụ sau,DISEASE,0,true,8,1
+Sugarcane_Yellow_Leaf,Diệt rệp mía,Phun trừ rệp sáp/rệp muội truyền bệnh,DISEASE,0,false,16,1
+Coffee_Rust,Phun rỉ sắt,Phun Hexaconazole hoặc Copper,DISEASE,0,false,7,1
+Coffee_Rust,Tỉa cành bóng,Tỉa bớt cây che bóng để giảm ẩm độ,TECHNIQUE,2,true,9,1
+Coffee_Rust,Bón bổ sung,Bón phân lá giúp cây hồi phục bộ lá,TECHNIQUE,5,false,8,1
+Grape_Esca,Cắt mạch gỗ bệnh,Dùng cưa cắt bỏ phần thân bị mục đen,DISEASE,0,true,9,2
+Grape_Esca,Quét thuốc bảo vệ,Quét thuốc nấm vào vết cưa lớn,DISEASE,0,true,10,1
+Grape_Esca,Đánh dấu theo dõi,Theo dõi cây bệnh xem có hồi phục không,DISEASE,7,true,8,1
+Mango_Sooty_Mould,Phun rửa muội đen,Pha nước rửa chén loãng phun rửa lá,DISEASE,0,false,16,1
+Mango_Sooty_Mould,Diệt rệp sáp,Phun thuốc đặc trị rệp sáp,DISEASE,1,false,8,1
+Grape_Leaf_Blight,Phun cháy lá,Sử dụng Ziram hoặc Mancozeb,DISEASE,0,false,7,1
+Grape_Leaf_Blight,Thu dọn lá khô,Quét sạch lá khô trong vườn,DISEASE,1,true,9,1
+Sugarcane_Brown_Rust,Phun rỉ sắt nâu,Phun Amistar Top hoặc Tilt Super,DISEASE,0,false,8,1
+Sugarcane_Brown_Rust,Bón Kali,Tăng lượng Kali giảm Đạm,TECHNIQUE,2,false,7,1
+Tomato_Early_Blight,Phun đốm sớm,Phun Difenoconazole,DISEASE,0,false,16,1
+Tomato_Early_Blight,Vệ sinh tàn dư,Thu gom thân lá cà chua vụ trước,DISEASE,0,true,8,2
+Tomato_Early_Blight,Luân canh,Không trồng cà chua liên tục trên đất cũ,TECHNIQUE,0,true,7,1
+Cassava_Bacterial_Blight,Ngưng tưới nước,Dừng tưới để tránh lây lan vi khuẩn,CLIMATE,0,true,7,1
+Cassava_Bacterial_Blight,Phun Copper,Phun thuốc gốc đồng sát khuẩn vết thương,DISEASE,0,false,8,1
+Cassava_Bacterial_Blight,Cắt tỉa,Cắt bỏ cành héo rũ,DISEASE,2,true,9,1
+Tomato_Healthy,Tỉa chồi nách,Tỉa bỏ chồi nách để cây tập trung nuôi quả,TECHNIQUE,0,true,8,1
+Tomato_Healthy,Treo dây leo,Buộc thân cà chua vào dây treo/cọc,TECHNIQUE,1,true,9,1
+Cassava_Brown_Spot,Phun đốm nâu,Sử dụng Carbendazim,DISEASE,0,false,7,1
+Cassava_Brown_Spot,Bón phân nuôi củ,Bón Kali giúp củ phát triển,TECHNIQUE,3,false,7,1
+Tomato_Septoria_Leaf_Spot,Phun Septoria,Sử dụng Chlorothalonil,DISEASE,0,false,16,1
+Tomato_Septoria_Leaf_Spot,Tưới nhỏ giọt,Tránh tưới phun mưa làm bắn bào tử nấm,TECHNIQUE,0,true,17,1
+Lychee_Fungal_Leaf_Spot,Phun đốm lá,Phun Difenoconazole,DISEASE,0,false,8,1
+Lychee_Fungal_Leaf_Spot,Tỉa cành tăm,Tỉa cành tăm trong tán cho thoáng,TECHNIQUE,1,true,9,1
+Lychee_Healthy_Leaf,Tỉa lộc đông,Tỉa bỏ lộc đông để cây phân hóa mầm hoa,TECHNIQUE,0,true,8,1
+Lychee_Healthy_Leaf,Khoanh vỏ,Khoanh vỏ hãm lộc (tùy giai đoạn),TECHNIQUE,0,true,9,1
+Potato_Late_Blight,Phun sương mai,Phun Ridomil Gold,DISEASE,0,false,16,1
+Potato_Late_Blight,Kiểm tra ruộng,Thăm đồng sáng sớm tìm vết bệnh ướt,DISEASE,1,false,6,1
+Potato_Early_Blight,Phun đốm vòng,Phun Azoxystrobin,DISEASE,0,false,16,1
+Potato_Early_Blight,Bón thúc,Bón thúc giúp cây khỏe vượt bệnh,TECHNIQUE,2,false,8,1
+Lychee_Dry_Leaf,Tưới hồi phục,Tưới nước liên tục 2-3 ngày,CLIMATE,0,false,17,1
+Lychee_Dry_Leaf,Tủ gốc,Dùng rơm rạ tủ gốc dày 10cm,CLIMATE,0,true,8,1
+Lychee_Dry_Leaf,Phun rong biển,Phun phân bón lá rong biển giải stress,TECHNIQUE,1,false,16,1
+Lychee_Deficiency_Leaf,Phun vi lượng,Phun Multi-K hoặc phân bón lá tổng hợp,TECHNIQUE,0,false,7,1
+Lychee_Deficiency_Leaf,Bón trung lượng,Rải vôi hoặc Dolomite bổ sung Ca Mg,TECHNIQUE,2,false,8,1
+Lychee_Leaf_Blight,Phun cháy lá,Sử dụng Kasumin + Copper,DISEASE,0,false,8,1
+Lychee_Leaf_Blight,Khơi rãnh,Đảm bảo vườn không ngập úng,CLIMATE,0,true,9,1
+Lychee_Anthrax_Leaf,Phun thán thư,Sử dụng Propineb hoặc Carbendazim,DISEASE,0,false,7,1
+Lychee_Anthrax_Leaf,Tỉa cành nhiễm,Cắt bỏ cành lá bị đốm đen,DISEASE,1,true,8,1
+Lychee_Bituminous_Leaf,Phun đốm nhựa đường,Phun thuốc gốc Đồng,DISEASE,0,false,8,1
+Lychee_Bituminous_Leaf,Vệ sinh vườn,Thu dọn lá rụng để giảm nguồn bệnh,DISEASE,2,true,9,1
+Lychee_Felt_Leaf,Phun nhện lông nhung,Sử dụng Sulfur (Lưu huỳnh) dạng bột,DISEASE,0,false,16,1
+Lychee_Felt_Leaf,Cắt cành bệnh,Cắt bỏ cành lộc bị co rúm,DISEASE,1,true,9,1
+Lychee_Felt_Leaf,Đốt cành bệnh,Đem đốt cành bị nhện hại,DISEASE,1,true,10,1
+Tomato_Bacterial_Spot,Phun đốm vi khuẩn,Phun Oxolinic acid hoặc Copper,DISEASE,0,false,7,1
+Tomato_Bacterial_Spot,Vệ sinh ruộng,Dọn sạch cỏ dại họ cà,DISEASE,1,true,8,1
+Lychee_Curl_Leaf,Tưới nước đều,Duy trì chế độ tưới ổn định,TECHNIQUE,0,false,17,1
+Lychee_Curl_Leaf,Phun Canxi Bo,Phun Canxi Bo hạn chế xoăn lá,TECHNIQUE,1,false,7,1
+Lychee_Curl_Leaf,Kiểm tra côn trùng,Kiểm tra xem có bọ trĩ chích hút không,TECHNIQUE,2,true,8,1
+Lychee_Leaf_Gall,Phun thuốc sâu,Sử dụng Abamectin khi lộc non mới nhú,DISEASE,0,false,16,1
+Lychee_Leaf_Gall,Ngắt bỏ lá u sưng,Ngắt bỏ các lá bị nổi u sần,DISEASE,1,true,9,1
+Cassava_Mosaic,Tiêu hủy cây bệnh,Nhổ và đốt cây sắn bị khảm,DISEASE,0,true,8,1
+Cassava_Mosaic,Diệt bọ phấn,Phun thuốc diệt bọ phấn trắng,DISEASE,0,false,7,1
+Cassava_Healthy,Làm cỏ vun luống,Làm cỏ đợt 2 kết hợp vun gốc,TECHNIQUE,0,true,8,2
+Cassava_Healthy,Bón thúc nuôi củ,Bón NPK hàm lượng Kali cao,TECHNIQUE,0,false,8,1
+Sugarcane_Healthy_Leaves,Đánh lá mía,Bóc bẹ lá khô để cây phát triển lóng,TECHNIQUE,0,true,9,2
+Sugarcane_Healthy_Leaves,Kiểm tra sâu đục thân,Tách bẹ kiểm tra sâu non,TECHNIQUE,0,true,8,1
+Grape_Downy_Mildew,Phun sương mai,Phun Fosetyl-Aluminium hoặc Metalaxyl,DISEASE,0,false,16,1
+Grape_Downy_Mildew,Tỉa lá chân,Tỉa sạch lá chân cho thông thoáng,DISEASE,0,true,9,1
+Grape_Downy_Mildew,Vệ sinh tàn dư,Thu gom lá bệnh đem chôn,DISEASE,1,true,10,1
+Papaya_Mealybug,Phun dầu khoáng,Phun dầu khoáng hoặc nước xà phòng,DISEASE,0,false,16,1
+Papaya_Mealybug,Thả bọ rùa,Thả thiên địch bọ rùa bắt rệp,DISEASE,1,true,8,1
+Papaya_Mealybug,Vệ sinh quả,Dùng cọ mềm quét sạch rệp trên quả,DISEASE,2,true,9,1

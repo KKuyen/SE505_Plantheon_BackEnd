@@ -43,10 +43,11 @@ func CreatePostHandler(c *gin.Context) {
 	}
 	
 	post := &Post{
-		Content:   req.Content,
-		ImageLink: pq.StringArray(req.ImageLink),
-		UserID:    user.ID, // Sử dụng UserID từ JWT token
-		Tags:      pq.StringArray(req.Tags),
+		Content:     req.Content,
+		ImageLink:   pq.StringArray(req.ImageLink),
+		UserID:      user.ID, // Sử dụng UserID từ JWT token
+		DiseaseLink: req.DiseaseLink,
+		Tags:        pq.StringArray(req.Tags),
 	}
 	
 	if err := CreatePost(post); err != nil {

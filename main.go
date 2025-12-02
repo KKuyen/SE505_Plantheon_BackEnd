@@ -115,7 +115,6 @@ func main() {
 			diseaseRoutes.GET("", diseases.GetDiseases)
 			diseaseRoutes.GET("/all", diseases.GetAllDiseasesHandler)
 			diseaseRoutes.GET("/count", diseases.GetDiseasesCountHandler)
-			// diseaseRoutes.GET("/:id", diseases.GetDisease)
 			diseaseRoutes.GET("/:ClassName", diseases.GetDiseaseByClassNameHandler)
 		}
 
