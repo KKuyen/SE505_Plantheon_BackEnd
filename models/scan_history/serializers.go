@@ -17,7 +17,6 @@ type ScanHistoryResponse struct {
 
 // CreateScanHistoryRequest represents scan history creation request
 type CreateScanHistoryRequest struct {
-	UserID    string `json:"user_id" binding:"required"`
 	DiseaseID string `json:"disease_id" binding:"required"`
 }
 

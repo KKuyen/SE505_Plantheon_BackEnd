@@ -9,11 +9,6 @@ import (
 
 // ValidateCreateScanHistoryRequest validates scan history creation request
 func ValidateCreateScanHistoryRequest(req *CreateScanHistoryRequest) error {
-	// Validate UserID
-	req.UserID = strings.TrimSpace(req.UserID)
-	if req.UserID == "" {
-		return errors.New("user id is required")
-	}
 
 	// Validate DiseaseID
 	req.DiseaseID = strings.TrimSpace(req.DiseaseID)

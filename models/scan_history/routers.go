@@ -3,6 +3,8 @@ package scan_history
 import (
 	"net/http"
 
+	"plantheon-backend/models/users"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,9 +26,25 @@ func CreateScanHistoryHandler(c *gin.Context) {
 		return
 	}
 
-	// Create scan history
+	// Lấy thông tin user từ JWT token context
+	userInterface, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User not found in context",
+		})
+		return
+	}
+
+	user, ok := userInterface.(*users.User)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Invalid user format",
+		})
+		return
+	}
+
 	scanHistory := &ScanHistory{
-		UserID:    req.UserID,
+		UserID:    user.ID,
 		DiseaseID: req.DiseaseID,
 	}
 
