@@ -46,6 +46,7 @@ func CreateScanHistoryHandler(c *gin.Context) {
 	scanHistory := &ScanHistory{
 		UserID:    user.ID,
 		DiseaseID: req.DiseaseID,
+		ScanImage: req.ScanImage,
 	}
 
 	if err := CreateScanHistoryRecord(scanHistory); err != nil {

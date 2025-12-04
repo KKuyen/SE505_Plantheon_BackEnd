@@ -13,6 +13,7 @@ type ScanHistory struct {
 	UserID    string            `json:"user_id" gorm:"not null"`
 	DiseaseID string            `json:"disease_id" gorm:"not null;type:uuid"`
 	Disease   diseases.Disease  `gorm:"-"`
+	ScanImage string            `json:"scan_image" gorm:"not null"`
 	CreatedAt time.Time         `json:"created_at"`
 	UpdatedAt time.Time         `json:"updated_at"`
 }

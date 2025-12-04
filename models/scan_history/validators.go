@@ -21,5 +21,11 @@ func ValidateCreateScanHistoryRequest(req *CreateScanHistoryRequest) error {
 		return errors.New("disease id must be a valid UUID")
 	}
 
+	// Validate ScanImage
+	req.ScanImage = strings.TrimSpace(req.ScanImage)
+	if req.ScanImage == "" {
+		return errors.New("scan image is required")
+	}
+
 	return nil
 }

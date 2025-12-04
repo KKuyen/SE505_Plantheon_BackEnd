@@ -11,6 +11,7 @@ type ScanHistoryResponse struct {
 	UserID    string                   `json:"user_id"`
 	DiseaseID string                   `json:"disease_id"`
 	Disease   diseases.DiseaseResponse `json:"disease"`
+	ScanImage string                   `json:"scan_image"`
 	CreatedAt time.Time                `json:"created_at"`
 	UpdatedAt time.Time                `json:"updated_at"`
 }
@@ -18,6 +19,7 @@ type ScanHistoryResponse struct {
 // CreateScanHistoryRequest represents scan history creation request
 type CreateScanHistoryRequest struct {
 	DiseaseID string `json:"disease_id" binding:"required"`
+	ScanImage string `json:"scan_image" binding:"required"`
 }
 
 // ScanHistoriesListResponse represents list of scan histories response
@@ -33,6 +35,7 @@ func (s *ScanHistory) ToScanHistoryResponse() ScanHistoryResponse {
 		UserID:    s.UserID,
 		DiseaseID: s.DiseaseID,
 		Disease:   s.Disease.ToDiseaseResponse(),
+		ScanImage: s.ScanImage,
 		CreatedAt: s.CreatedAt,
 		UpdatedAt: s.UpdatedAt,
 	}
