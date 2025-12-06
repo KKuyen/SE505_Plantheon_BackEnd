@@ -79,11 +79,12 @@ func CreateNewsHandler(c *gin.Context) {
 	}
 
 	blog := &Blog{
-		Title:       req.Title,
-		Content:     req.Content,
+		Title:         req.Title,
+		Description:   req.Description,
+		Content:       req.Content,
 		CoverImageURL: req.CoverImageURL,
-		Status:      req.Status,
-		UserID:      user.ID,
+		Status:        req.Status,
+		UserID:        user.ID,
 	}
 
 	if req.Status == "published" {
@@ -101,14 +102,15 @@ func CreateNewsHandler(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "News created successfully",
 		"data": gin.H{
-			"id":             blog.ID,
-			"title":          blog.Title,
-			"content":        blog.Content,
+			"id":              blog.ID,
+			"title":           blog.Title,
+			"description":     blog.Description,
+			"content":         blog.Content,
 			"cover_image_url": blog.CoverImageURL,
-			"status":         blog.Status,
-			"published_at":   blog.PublishedAt,
-			"user_id":        blog.UserID,
-			"created_at":     blog.CreatedAt,
+			"status":          blog.Status,
+			"published_at":    blog.PublishedAt,
+			"user_id":         blog.UserID,
+			"created_at":      blog.CreatedAt,
 		},
 	})
 }
@@ -138,11 +140,12 @@ func UpdateNewsHandler(c *gin.Context) {
 	}
 
 	blog := &Blog{
-		ID:          id,
-		Title:       req.Title,
-		Content:     req.Content,
+		ID:            id,
+		Title:         req.Title,
+		Description:   req.Description,
+		Content:       req.Content,
 		CoverImageURL: req.CoverImageURL,
-		Status:      req.Status,
+		Status:        req.Status,
 	}
 
 	if req.Status == "published" {
@@ -164,12 +167,13 @@ func UpdateNewsHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "News updated successfully",
 		"data": gin.H{
-			"id":             blog.ID,
-			"title":          blog.Title,
-			"content":        blog.Content,
+			"id":              blog.ID,
+			"title":           blog.Title,
+			"description":     blog.Description,
+			"content":         blog.Content,
 			"cover_image_url": blog.CoverImageURL,
-			"status":         blog.Status,
-			"updated_at":     blog.UpdatedAt,
+			"status":          blog.Status,
+			"updated_at":      blog.UpdatedAt,
 		},
 	})
 }

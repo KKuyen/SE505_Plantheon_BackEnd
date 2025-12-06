@@ -17,6 +17,15 @@ func ValidateCreateNewsRequest(req *CreateNewsRequest) error {
 		return errors.New("news title must be less than 200 characters")
 	}
 
+	// Validate description
+	if req.Description != nil {
+		desc := strings.TrimSpace(*req.Description)
+		if len(desc) > 1000 {
+			return errors.New("news description must be less than 1000 characters")
+		}
+		req.Description = &desc
+	}
+
 	// Validate content
 	req.Content = strings.TrimSpace(req.Content)
 	if req.Content == "" {

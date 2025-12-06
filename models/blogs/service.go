@@ -30,6 +30,7 @@ func UpdateNews(blog *Blog) error {
 	// Use Updates to only update the fields that are provided
 	updates := map[string]interface{}{
 		"title":           blog.Title,
+		"description":     blog.Description,
 		"content":         blog.Content,
 		"cover_image_url": blog.CoverImageURL,
 		"status":          blog.Status,
@@ -63,7 +64,7 @@ func GetAllNews() (NewsListResponse, error) {
 			newsResponses = append(newsResponses, NewsResponse{
 				ID:            blog.ID,
 				Title:         blog.Title,
-				Content:       blog.Content,
+				Description:   blog.Description,
 				CoverImageURL: blog.CoverImageURL,
 				Status:        blog.Status,
 				PublishedAt:   blog.PublishedAt,
@@ -79,7 +80,7 @@ func GetAllNews() (NewsListResponse, error) {
 		newsResponses = append(newsResponses, NewsResponse{
 			ID:            blog.ID,
 			Title:         blog.Title,
-			Content:       blog.Content,
+			Description:   blog.Description,
 			CoverImageURL: blog.CoverImageURL,
 			Status:        blog.Status,
 			PublishedAt:   blog.PublishedAt,
@@ -111,6 +112,7 @@ func GetNewsByID(id string) (*NewsDetailResponse, error) {
 		return &NewsDetailResponse{
 			ID:            blog.ID,
 			Title:         blog.Title,
+			Description:   blog.Description,
 			Content:       blog.Content,
 			CoverImageURL: blog.CoverImageURL,
 			Status:        blog.Status,
@@ -126,6 +128,7 @@ func GetNewsByID(id string) (*NewsDetailResponse, error) {
 	return &NewsDetailResponse{
 		ID:            blog.ID,
 		Title:         blog.Title,
+		Description:   blog.Description,
 		Content:       blog.Content,
 		CoverImageURL: blog.CoverImageURL,
 		Status:        blog.Status,
@@ -161,7 +164,7 @@ func GetNewsByUserID(userID string) (NewsListResponse, error) {
 			newsResponses = append(newsResponses, NewsResponse{
 				ID:            blog.ID,
 				Title:         blog.Title,
-				Content:       blog.Content,
+				Description:   blog.Description,
 				CoverImageURL: blog.CoverImageURL,
 				Status:        blog.Status,
 				PublishedAt:   blog.PublishedAt,
@@ -177,7 +180,7 @@ func GetNewsByUserID(userID string) (NewsListResponse, error) {
 		newsResponses = append(newsResponses, NewsResponse{
 			ID:            blog.ID,
 			Title:         blog.Title,
-			Content:       blog.Content,
+			Description:   blog.Description,
 			CoverImageURL: blog.CoverImageURL,
 			Status:        blog.Status,
 			PublishedAt:   blog.PublishedAt,
