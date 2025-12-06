@@ -23,6 +23,10 @@ func ValidateCreateGuideStageRequest(req *CreateGuideStageRequest) error {
 		return errors.New("end_day_offset must be greater than or equal to start_day_offset")
 	}
 
+	if req.Description != nil && len(*req.Description) > 2000 {
+		return errors.New("description must be less than 2000 characters")
+	}
+
 	if req.ImageURL != nil && len(*req.ImageURL) > 2000 {
 		return errors.New("image_url must be less than 2000 characters")
 	}
@@ -39,6 +43,10 @@ func ValidateUpdateGuideStageRequest(req *UpdateGuideStageRequest) error {
 		if len(*req.StageTitle) > 500 {
 			return errors.New("stage_title must be less than 500 characters")
 		}
+	}
+
+	if req.Description != nil && len(*req.Description) > 2000 {
+		return errors.New("description must be less than 2000 characters")
 	}
 
 	if req.ImageURL != nil && len(*req.ImageURL) > 2000 {

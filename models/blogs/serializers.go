@@ -43,3 +43,20 @@ type NewsDetailResponse struct {
 	FullName      string     `json:"full_name"`
 	Avatar        string     `json:"avatar"`
 }
+
+// BlogSummaryResponse is a lightweight blog representation
+// used for embedding blogs under sub guide stages.
+type BlogSummaryResponse struct {
+	Title         string  `json:"title"`
+	Content       string  `json:"content"`
+	CoverImageURL *string `json:"cover_image_url"`
+}
+
+// ToBlogSummaryResponse converts Blog to BlogSummaryResponse.
+func (b *Blog) ToBlogSummaryResponse() BlogSummaryResponse {
+	return BlogSummaryResponse{
+		Title:         b.Title,
+		Content:       b.Content,
+		CoverImageURL: b.CoverImageURL,
+	}
+}

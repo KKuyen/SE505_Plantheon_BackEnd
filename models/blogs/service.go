@@ -34,12 +34,12 @@ func UpdateNews(blog *Blog) error {
 		"cover_image_url": blog.CoverImageURL,
 		"status":          blog.Status,
 	}
-	
+
 	// Only update published_at if it's being set (not nil)
 	if blog.PublishedAt != nil {
 		updates["published_at"] = blog.PublishedAt
 	}
-	
+
 	if err := service.db.Model(&Blog{}).Where("id = ?", blog.ID).Updates(updates).Error; err != nil {
 		return err
 	}
@@ -60,33 +60,33 @@ func GetAllNews() (NewsListResponse, error) {
 		if err := service.db.Where("id = ?", blog.UserID).First(&user).Error; err != nil {
 			// Nếu không tìm thấy user, vẫn trả về blog nhưng với thông tin user rỗng
 			newsResponses = append(newsResponses, NewsResponse{
-				ID:           blog.ID,
-				Title:        blog.Title,
-				Content:     blog.Content,
+				ID:            blog.ID,
+				Title:         blog.Title,
+				Content:       blog.Content,
 				CoverImageURL: blog.CoverImageURL,
-				Status:       blog.Status,
-				PublishedAt:  blog.PublishedAt,
-				CreatedAt:    blog.CreatedAt,
-				UpdatedAt:    blog.UpdatedAt,
-				UserID:       blog.UserID,
-				FullName:     "Unknown User",
-				Avatar:       "",
+				Status:        blog.Status,
+				PublishedAt:   blog.PublishedAt,
+				CreatedAt:     blog.CreatedAt,
+				UpdatedAt:     blog.UpdatedAt,
+				UserID:        blog.UserID,
+				FullName:      "Unknown User",
+				Avatar:        "",
 			})
 			continue
 		}
 
 		newsResponses = append(newsResponses, NewsResponse{
-			ID:           blog.ID,
-			Title:        blog.Title,
-			Content:      blog.Content,
+			ID:            blog.ID,
+			Title:         blog.Title,
+			Content:       blog.Content,
 			CoverImageURL: blog.CoverImageURL,
-			Status:       blog.Status,
-			PublishedAt:  blog.PublishedAt,
-			CreatedAt:    blog.CreatedAt,
-			UpdatedAt:    blog.UpdatedAt,
-			UserID:       blog.UserID,
-			FullName:     user.FullName,
-			Avatar:       user.Avatar,
+			Status:        blog.Status,
+			PublishedAt:   blog.PublishedAt,
+			CreatedAt:     blog.CreatedAt,
+			UpdatedAt:     blog.UpdatedAt,
+			UserID:        blog.UserID,
+			FullName:      user.FullName,
+			Avatar:        user.Avatar,
 		})
 	}
 
@@ -108,32 +108,32 @@ func GetNewsByID(id string) (*NewsDetailResponse, error) {
 	if err := service.db.Where("id = ?", blog.UserID).First(&user).Error; err != nil {
 		// Nếu không tìm thấy user, trả về blog nhưng với thông tin user rỗng
 		return &NewsDetailResponse{
-			ID:           blog.ID,
-			Title:        blog.Title,
-			Content:      blog.Content,
+			ID:            blog.ID,
+			Title:         blog.Title,
+			Content:       blog.Content,
 			CoverImageURL: blog.CoverImageURL,
-			Status:       blog.Status,
-			PublishedAt:  blog.PublishedAt,
-			CreatedAt:    blog.CreatedAt,
-			UpdatedAt:    blog.UpdatedAt,
-			UserID:       blog.UserID,
-			FullName:     "Unknown User",
-			Avatar:       "",
+			Status:        blog.Status,
+			PublishedAt:   blog.PublishedAt,
+			CreatedAt:     blog.CreatedAt,
+			UpdatedAt:     blog.UpdatedAt,
+			UserID:        blog.UserID,
+			FullName:      "Unknown User",
+			Avatar:        "",
 		}, nil
 	}
 
 	return &NewsDetailResponse{
-		ID:           blog.ID,
-		Title:        blog.Title,
-		Content:      blog.Content,
+		ID:            blog.ID,
+		Title:         blog.Title,
+		Content:       blog.Content,
 		CoverImageURL: blog.CoverImageURL,
-		Status:       blog.Status,
-		PublishedAt:  blog.PublishedAt,
-		CreatedAt:    blog.CreatedAt,
-		UpdatedAt:    blog.UpdatedAt,
-		UserID:       blog.UserID,
-		FullName:     user.FullName,
-		Avatar:       user.Avatar,
+		Status:        blog.Status,
+		PublishedAt:   blog.PublishedAt,
+		CreatedAt:     blog.CreatedAt,
+		UpdatedAt:     blog.UpdatedAt,
+		UserID:        blog.UserID,
+		FullName:      user.FullName,
+		Avatar:        user.Avatar,
 	}, nil
 }
 
@@ -158,33 +158,33 @@ func GetNewsByUserID(userID string) (NewsListResponse, error) {
 		var user users.User
 		if err := service.db.Where("id = ?", blog.UserID).First(&user).Error; err != nil {
 			newsResponses = append(newsResponses, NewsResponse{
-				ID:           blog.ID,
-				Title:        blog.Title,
-				Content:      blog.Content,
+				ID:            blog.ID,
+				Title:         blog.Title,
+				Content:       blog.Content,
 				CoverImageURL: blog.CoverImageURL,
-				Status:       blog.Status,
-				PublishedAt:  blog.PublishedAt,
-				CreatedAt:    blog.CreatedAt,
-				UpdatedAt:    blog.UpdatedAt,
-				UserID:       blog.UserID,
-				FullName:     "Unknown User",
-				Avatar:       "",
+				Status:        blog.Status,
+				PublishedAt:   blog.PublishedAt,
+				CreatedAt:     blog.CreatedAt,
+				UpdatedAt:     blog.UpdatedAt,
+				UserID:        blog.UserID,
+				FullName:      "Unknown User",
+				Avatar:        "",
 			})
 			continue
 		}
 
 		newsResponses = append(newsResponses, NewsResponse{
-			ID:           blog.ID,
-			Title:        blog.Title,
-			Content:      blog.Content,
+			ID:            blog.ID,
+			Title:         blog.Title,
+			Content:       blog.Content,
 			CoverImageURL: blog.CoverImageURL,
-			Status:       blog.Status,
-			PublishedAt:  blog.PublishedAt,
-			CreatedAt:    blog.CreatedAt,
-			UpdatedAt:    blog.UpdatedAt,
-			UserID:       blog.UserID,
-			FullName:     user.FullName,
-			Avatar:       user.Avatar,
+			Status:        blog.Status,
+			PublishedAt:   blog.PublishedAt,
+			CreatedAt:     blog.CreatedAt,
+			UpdatedAt:     blog.UpdatedAt,
+			UserID:        blog.UserID,
+			FullName:      user.FullName,
+			Avatar:        user.Avatar,
 		})
 	}
 
@@ -192,4 +192,17 @@ func GetNewsByUserID(userID string) (NewsListResponse, error) {
 		News:  newsResponses,
 		Total: len(newsResponses),
 	}, nil
+}
+
+// GetBlogsBySubGuideStageID returns published blogs linked to a sub guide stage.
+func GetBlogsBySubGuideStageID(subGuideStageID string) ([]Blog, error) {
+	service := NewBlogsService()
+	var blogs []Blog
+	if err := service.db.
+		Where("sub_guide_stages_id = ? AND status = ?", subGuideStageID, "published").
+		Order("created_at ASC").
+		Find(&blogs).Error; err != nil {
+		return nil, err
+	}
+	return blogs, nil
 }

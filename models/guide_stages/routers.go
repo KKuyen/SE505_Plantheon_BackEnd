@@ -3,6 +3,7 @@ package guide_stages
 import (
 	"net/http"
 
+	"plantheon-backend/models/blogs"
 	"plantheon-backend/models/sub_guide_stages"
 
 	"github.com/gin-gonic/gin"
@@ -31,6 +32,7 @@ func CreateGuideStageHandler(c *gin.Context) {
 	guideStage := &GuideStage{
 		PlantID:        req.PlantID,
 		StageTitle:     req.StageTitle,
+		Description:    req.Description,
 		StartDayOffset: req.StartDayOffset,
 		EndDayOffset:   req.EndDayOffset,
 		ImageURL:       req.ImageURL,
@@ -73,8 +75,42 @@ func GetGuideStageByIDHandler(c *gin.Context) {
 		return
 	}
 
+	// Load sub guide stages for this guide stage
+	subGuideStages, err := sub_guide_stages.GetSubGuideStagesByGuideStageID(guideStage.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get sub guide stages",
+		})
+		return
+	}
+
+	// Build response with sub guide stages
+	response := guideStage.ToGuideStageResponse()
+	subGuideStageResponses := make([]sub_guide_stages.SubGuideStageResponse, 0, len(subGuideStages))
+	for _, sgs := range subGuideStages {
+		sgsResp := sgs.ToSubGuideStageResponse()
+
+		// Load published blogs for this sub guide stage
+		subBlogs, err := blogs.GetBlogsBySubGuideStageID(sgs.ID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to get blogs for sub guide stage",
+			})
+			return
+		}
+
+		blogSummaries := make([]blogs.BlogSummaryResponse, 0, len(subBlogs))
+		for _, b := range subBlogs {
+			blogSummaries = append(blogSummaries, b.ToBlogSummaryResponse())
+		}
+		sgsResp.Blogs = blogSummaries
+
+		subGuideStageResponses = append(subGuideStageResponses, sgsResp)
+	}
+	response.SubGuideStages = subGuideStageResponses
+
 	c.JSON(http.StatusOK, gin.H{
-		"data": guideStage.ToGuideStageResponse(),
+		"data": response,
 	})
 }
 
@@ -96,28 +132,10 @@ func GetGuideStagesByPlantIDHandler(c *gin.Context) {
 		return
 	}
 
-	// Convert to response format and populate sub guide stages
+	// Convert to response format without sub guide stages
 	var response []GuideStageResponse
 	for _, gs := range guideStages {
-		guideStageResponse := gs.ToGuideStageResponse()
-		
-		// Get sub guide stages for this guide stage
-		subGuideStages, err := sub_guide_stages.GetSubGuideStagesByGuideStageID(gs.ID)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Failed to get sub guide stages",
-			})
-			return
-		}
-		
-		// Convert sub guide stages to response format
-		subGuideStageResponses := make([]sub_guide_stages.SubGuideStageResponse, 0, len(subGuideStages))
-		for _, sgs := range subGuideStages {
-			subGuideStageResponses = append(subGuideStageResponses, sgs.ToSubGuideStageResponse())
-		}
-		
-		guideStageResponse.SubGuideStages = subGuideStageResponses
-		response = append(response, guideStageResponse)
+		response = append(response, gs.ToGuideStageResponse())
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -182,6 +200,9 @@ func UpdateGuideStageHandler(c *gin.Context) {
 	}
 	if req.ImageURL != nil {
 		guideStage.ImageURL = req.ImageURL
+	}
+	if req.Description != nil {
+		guideStage.Description = req.Description
 	}
 
 	// Validate day offsets after update

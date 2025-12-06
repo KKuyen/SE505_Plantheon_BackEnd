@@ -1,12 +1,15 @@
 package sub_guide_stages
 
+import "plantheon-backend/models/blogs"
+
 // SubGuideStageResponse represents sub guide stage response
 type SubGuideStageResponse struct {
-	ID             string  `json:"id"`
-	GuideStagesID  *string `json:"guide_stages_id"`
-	Title          *string `json:"title"`
-	StartDayOffset int     `json:"start_day_offset"`
-	EndDayOffset   int     `json:"end_day_offset"`
+	ID             string                      `json:"id"`
+	GuideStagesID  *string                     `json:"guide_stages_id"`
+	Title          *string                     `json:"title"`
+	StartDayOffset int                         `json:"start_day_offset"`
+	EndDayOffset   int                         `json:"end_day_offset"`
+	Blogs          []blogs.BlogSummaryResponse `json:"blogs,omitempty"`
 }
 
 // CreateSubGuideStageRequest represents sub guide stage creation request
@@ -32,5 +35,6 @@ func (sgs *SubGuideStage) ToSubGuideStageResponse() SubGuideStageResponse {
 		Title:          sgs.Title,
 		StartDayOffset: sgs.StartDayOffset,
 		EndDayOffset:   sgs.EndDayOffset,
+		Blogs:          nil,
 	}
 }
