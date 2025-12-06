@@ -3,7 +3,11 @@ package scan_history
 import (
 	"net/http"
 
+	"plantheon-backend/models/users"
+
 	"github.com/gin-gonic/gin"
+
+	"strconv"
 )
 
 // CreateScanHistoryHandler handles scan history creation
@@ -24,10 +28,27 @@ func CreateScanHistoryHandler(c *gin.Context) {
 		return
 	}
 
-	// Create scan history
+	// Lấy thông tin user từ JWT token context
+	userInterface, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User not found in context",
+		})
+		return
+	}
+
+	user, ok := userInterface.(*users.User)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Invalid user format",
+		})
+		return
+	}
+
 	scanHistory := &ScanHistory{
-		UserID:    req.UserID,
+		UserID:    user.ID,
 		DiseaseID: req.DiseaseID,
+		ScanImage: req.ScanImage,
 	}
 
 	if err := CreateScanHistoryRecord(scanHistory); err != nil {
@@ -45,18 +66,31 @@ func CreateScanHistoryHandler(c *gin.Context) {
 
 // GetScanHistoriesHandler handles getting all scan histories
 func GetScanHistoriesHandler(c *gin.Context) {
+	sizeParam := c.DefaultQuery("size", "0")
+	size := 0
+	if sizeParam != "0" {
+		var errParse error
+		size, errParse = strconv.Atoi(sizeParam)
+		if errParse != nil || size < 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid size parameter"})
+			return
+		}
+	}
+
 	scanHistories, err := GetAllScanHistories()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get scan histories",
-		})
+			"error": "Failed to get scan histories"})
 		return
 	}
 
+	// Nếu size > 0 thì chỉ lấy size record mới nhất
+	if size > 0 && size < len(scanHistories) {
+		scanHistories = scanHistories[:size]
+	}
+
 	response := ToScanHistoriesListResponse(scanHistories)
-	c.JSON(http.StatusOK, gin.H{
-		"data": response,
-	})
+	c.JSON(http.StatusOK, gin.H{"data": response})
 }
 
 // GetScanHistoryByIDHandler handles getting a scan history by ID
