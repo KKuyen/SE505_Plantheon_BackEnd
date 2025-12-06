@@ -49,7 +49,8 @@ func UpdateNews(blog *Blog) error {
 func GetAllNews() (NewsListResponse, error) {
 	service := NewBlogsService()
 	var blogs []Blog
-	if err := service.db.Where("status = ?", "published").Find(&blogs).Error; err != nil {
+	// Only fetch published blogs that are NOT linked to any sub guide stage
+	if err := service.db.Where("status = ? AND sub_guide_stages_id IS NULL", "published").Find(&blogs).Error; err != nil {
 		return NewsListResponse{}, err
 	}
 
