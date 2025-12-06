@@ -67,40 +67,56 @@ func GetAllPosts(viewerID string) (PostListResponse, error) {
 		// Lấy thông tin user từ UserID
 		var user users.User
 		if err := service.db.Where("id = ?", post.UserID).First(&user).Error; err != nil {
-			// Nếu không tìm thấy user, vẫn trả về post nhưng với thông tin user rỗng
-			postResponses = append(postResponses, PostResponse{
-				ID:         post.ID,
-				UserID:     post.UserID,
-				FullName:   "Unknown User",
-				Avatar:     "",
-				Content:    post.Content,
-				ImageLink:  post.ImageLink,
-				Tags:       post.Tags,
-				LikeNum:    post.LikeNum,
-				Liked:      likedMap[post.ID],
-				CommentNum: post.CommentNum,
-				ShareNum:   post.ShareNum,
-				CreatedAt:  post.CreatedAt,
-				UpdatedAt:  post.UpdatedAt,
-			})
-			continue
+			user.FullName = "Unknown User"
+			user.Avatar = ""
+		}
+		
+		// Lấy thông tin disease nếu có disease_link
+		var diseaseName *string
+		var diseaseDescription *string
+		var diseaseSolution *string
+		var diseaseImageLink []string
+		if post.DiseaseLink != nil && *post.DiseaseLink != "" {
+			var disease struct {
+				Name        *string
+				Description *string
+				Solution    *string
+				ImageLink   interface{}
+			}
+			if err := service.db.Table("diseases").Select("name, description, solution, image_link").Where("id = ?", *post.DiseaseLink).First(&disease).Error; err == nil {
+				diseaseName = disease.Name
+				diseaseDescription = disease.Description
+				diseaseSolution = disease.Solution
+				if imgLinks, ok := disease.ImageLink.([]interface{}); ok {
+					for _, link := range imgLinks {
+						if strLink, ok := link.(string); ok {
+							diseaseImageLink = append(diseaseImageLink, strLink)
+						}
+					}
+				}
+			}
 		}
 		
 		postResponses = append(postResponses, PostResponse{
-			ID:          post.ID,
-			UserID:      post.UserID,
-			FullName:    user.FullName,
-			Avatar:      user.Avatar,
-			Content:     post.Content,
-			ImageLink:   post.ImageLink,
-			DiseaseLink: post.DiseaseLink,
-			Tags:        post.Tags,
-			LikeNum:     post.LikeNum,
-			Liked:       likedMap[post.ID],
-			CommentNum:  post.CommentNum,
-			ShareNum:    post.ShareNum,
-			CreatedAt:   post.CreatedAt,
-			UpdatedAt:   post.UpdatedAt,
+			ID:                 post.ID,
+			UserID:             post.UserID,
+			FullName:           user.FullName,
+			Avatar:             user.Avatar,
+			Content:            post.Content,
+			ImageLink:          post.ImageLink,
+			DiseaseLink:        post.DiseaseLink,
+			DiseaseName:        diseaseName,
+			DiseaseDescription: diseaseDescription,
+			DiseaseSolution:    diseaseSolution,
+			DiseaseImageLink:   diseaseImageLink,
+			ScanHistoryID:      post.ScanHistoryID,
+			Tags:               post.Tags,
+			LikeNum:            post.LikeNum,
+			Liked:              likedMap[post.ID],
+			CommentNum:         post.CommentNum,
+			ShareNum:           post.ShareNum,
+			CreatedAt:          post.CreatedAt,
+			UpdatedAt:          post.UpdatedAt,
 		})
 	}
 	
@@ -128,25 +144,36 @@ func GetPostByID(id string, viewerID string) (*PostDetailResponse, error) {
 	// Lấy thông tin user từ UserID
 	var user users.User
 	if err := service.db.Where("id = ?", post.UserID).First(&user).Error; err != nil {
-		// Nếu không tìm thấy user, trả về post nhưng với thông tin user rỗng
-		return &PostDetailResponse{
-			ID:          post.ID,
-			UserID:      post.UserID,
-			FullName:    "Unknown User",
-			Avatar:      "",
-			Content:     post.Content,
-			ImageLink:   post.ImageLink,
-			DiseaseLink: post.DiseaseLink,
-			Tags:        post.Tags,
-			LikeNum:     post.LikeNum,
-			Liked:       liked,
-			CommentNum:  post.CommentNum,
-			ShareNum:    post.ShareNum,
-			CreatedAt:   post.CreatedAt,
-			UpdatedAt:   post.UpdatedAt,
-			CommentList: []comments.CommentResponse{},
-		}, nil
+		user.FullName = "Unknown User"
+		user.Avatar = ""
 	}
+	
+	// Lấy thông tin disease nếu có disease_link
+	var diseaseName *string
+	var diseaseDescription *string
+	var diseaseSolution *string
+	var diseaseImageLink []string
+	if post.DiseaseLink != nil && *post.DiseaseLink != "" {
+		var disease struct {
+			Name        *string
+			Description *string
+			Solution    *string
+			ImageLink   interface{}
+		}
+		if err := service.db.Table("diseases").Select("name, description, solution, image_link").Where("id = ?", *post.DiseaseLink).First(&disease).Error; err == nil {
+			diseaseName = disease.Name
+			diseaseDescription = disease.Description
+			diseaseSolution = disease.Solution
+			if imgLinks, ok := disease.ImageLink.([]interface{}); ok {
+				for _, link := range imgLinks {
+					if strLink, ok := link.(string); ok {
+						diseaseImageLink = append(diseaseImageLink, strLink)
+					}
+				}
+			}
+		}
+	}
+	
 	// Lấy danh sách bình luận liên quan đến bài viết với thông tin user
 	var rawComments []comments.Comments
 	if err := service.db.Where("post_id = ?", post.ID).Order("created_at DESC").Find(&rawComments).Error; err != nil {
@@ -181,21 +208,26 @@ func GetPostByID(id string, viewerID string) (*PostDetailResponse, error) {
 	}
 	
 	return &PostDetailResponse{
-		ID:          post.ID,
-		UserID:      post.UserID,
-		FullName:    user.FullName,
-		Avatar:      user.Avatar,
-		Content:     post.Content,
-		ImageLink:   post.ImageLink,
-		DiseaseLink: post.DiseaseLink,
-		Tags:        post.Tags,
-		LikeNum:     post.LikeNum,
-		Liked:       liked,
-		CommentNum:  post.CommentNum,
-		ShareNum:    post.ShareNum,
-		CreatedAt:   post.CreatedAt,
-		UpdatedAt:   post.UpdatedAt,
-		CommentList: commentList,
+		ID:                 post.ID,
+		UserID:             post.UserID,
+		FullName:           user.FullName,
+		Avatar:             user.Avatar,
+		Content:            post.Content,
+		ImageLink:          post.ImageLink,
+		DiseaseLink:        post.DiseaseLink,
+		DiseaseName:        diseaseName,
+		DiseaseDescription: diseaseDescription,
+		DiseaseSolution:    diseaseSolution,
+		DiseaseImageLink:   diseaseImageLink,
+		ScanHistoryID:      post.ScanHistoryID,
+		Tags:               post.Tags,
+		LikeNum:            post.LikeNum,
+		Liked:              liked,
+		CommentNum:         post.CommentNum,
+		ShareNum:           post.ShareNum,
+		CreatedAt:          post.CreatedAt,
+		UpdatedAt:          post.UpdatedAt,
+		CommentList:        commentList,
 	}, nil
 }
 
@@ -305,42 +337,59 @@ func GetPostsByUserID(userID string, viewerID string) (PostListResponse, error) 
 		// Lấy thông tin user từ UserID
 		var user users.User
 		if err := service.db.Where("id = ?", post.UserID).First(&user).Error; err != nil {
-			// Nếu không tìm thấy user, vẫn trả về post nhưng với thông tin user rỗng
-			postResponses = append(postResponses, PostResponse{
-				ID:          post.ID,
-				UserID:      post.UserID,
-				FullName:    "Unknown User",
-				Avatar:      "",
-				Content:     post.Content,
-				ImageLink:   post.ImageLink,
-				DiseaseLink: post.DiseaseLink,
-				Tags:        post.Tags,
-				LikeNum:     post.LikeNum,
-				Liked:       likedMap[post.ID],
-				CommentNum:  post.CommentNum,
-				ShareNum:    post.ShareNum,
-				CreatedAt:   post.CreatedAt,
-				UpdatedAt:   post.UpdatedAt,
-			})
-			continue
+			user.FullName = "Unknown User"
+			user.Avatar = ""
 		}
+		
+		// Lấy thông tin disease nếu có disease_link
+		var diseaseName *string
+		var diseaseDescription *string
+		var diseaseSolution *string
+		var diseaseImageLink []string
+		if post.DiseaseLink != nil && *post.DiseaseLink != "" {
+			var disease struct {
+				Name        *string
+				Description *string
+				Solution    *string
+				ImageLink   interface{}
+			}
+			if err := service.db.Table("diseases").Select("name, description, solution, image_link").Where("id = ?", *post.DiseaseLink).First(&disease).Error; err == nil {
+				diseaseName = disease.Name
+				diseaseDescription = disease.Description
+				diseaseSolution = disease.Solution
+				if imgLinks, ok := disease.ImageLink.([]interface{}); ok {
+					for _, link := range imgLinks {
+						if strLink, ok := link.(string); ok {
+							diseaseImageLink = append(diseaseImageLink, strLink)
+						}
+					}
+				}
+			}
+		}
+		
 		postResponses = append(postResponses, PostResponse{
-			ID:          post.ID,
-			UserID:      post.UserID,	
-			FullName:    user.FullName,
-			Avatar:      user.Avatar,
-			Content:     post.Content,
-			ImageLink:   post.ImageLink,
-			DiseaseLink: post.DiseaseLink,
-			Tags:        post.Tags,
-			LikeNum:     post.LikeNum,
-			Liked:       likedMap[post.ID],
-			CommentNum:  post.CommentNum,
-			ShareNum:    post.ShareNum,
-			CreatedAt:   post.CreatedAt,
-			UpdatedAt:   post.UpdatedAt,
+			ID:                 post.ID,
+			UserID:             post.UserID,
+			FullName:           user.FullName,
+			Avatar:             user.Avatar,
+			Content:            post.Content,
+			ImageLink:          post.ImageLink,
+			DiseaseLink:        post.DiseaseLink,
+			DiseaseName:        diseaseName,
+			DiseaseDescription: diseaseDescription,
+			DiseaseSolution:    diseaseSolution,
+			DiseaseImageLink:   diseaseImageLink,
+			ScanHistoryID:      post.ScanHistoryID,
+			Tags:               post.Tags,
+			LikeNum:            post.LikeNum,
+			Liked:              likedMap[post.ID],
+			CommentNum:         post.CommentNum,
+			ShareNum:           post.ShareNum,
+			CreatedAt:          post.CreatedAt,
+			UpdatedAt:          post.UpdatedAt,
 		})
-	}	
+	}
+	
 	return PostListResponse{
 		Posts: postResponses,
 		Total: len(postResponses),
