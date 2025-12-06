@@ -44,7 +44,7 @@ func CreatePlantRecord(plant *Plant) error {
 func GetAllPlants() ([]Plant, error) {
 	service := NewPlantService()
 	var plants []Plant
-	err := service.db.Order("created_at DESC").Find(&plants).Error
+	err := service.db.Order("created_at ASC").Find(&plants).Error
 	return plants, err
 }
 
