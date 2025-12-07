@@ -1,8 +1,11 @@
 package posts
 
 import (
+	"fmt"
+
 	"plantheon-backend/common"
 	"plantheon-backend/models/comments"
+	"plantheon-backend/models/noti"
 	"plantheon-backend/models/users"
 
 	"gorm.io/gorm"
@@ -25,10 +28,10 @@ func CreatePost(post *Post) error {
 	return nil
 }
 
-func UpdatePost(post *Post) error {	
+func UpdatePost(post *Post) error {
 	service := NewPostsService()
 	if err := service.db.Save(post).Error; err != nil {
-		return err	
+		return err
 	}
 	return nil
 }
@@ -39,7 +42,7 @@ func GetAllPosts(viewerID string) (PostListResponse, error) {
 	if err := service.db.Find(&posts).Error; err != nil {
 		return PostListResponse{}, err
 	}
-	
+
 	// Batch-fetch likes for all posts by viewerID to avoid N+1
 	postIDs := make([]string, len(posts))
 	for i, p := range posts {
@@ -61,7 +64,7 @@ func GetAllPosts(viewerID string) (PostListResponse, error) {
 	for _, pid := range likedPostIDs {
 		likedMap[pid] = true
 	}
-	
+
 	var postResponses []PostResponse
 	for _, post := range posts {
 		// Lấy thông tin user từ UserID
@@ -70,7 +73,7 @@ func GetAllPosts(viewerID string) (PostListResponse, error) {
 			user.FullName = "Unknown User"
 			user.Avatar = ""
 		}
-		
+
 		// Lấy thông tin disease nếu có disease_link
 		var diseaseName *string
 		var diseaseDescription *string
@@ -96,7 +99,7 @@ func GetAllPosts(viewerID string) (PostListResponse, error) {
 				}
 			}
 		}
-		
+
 		postResponses = append(postResponses, PostResponse{
 			ID:                 post.ID,
 			UserID:             post.UserID,
@@ -119,7 +122,7 @@ func GetAllPosts(viewerID string) (PostListResponse, error) {
 			UpdatedAt:          post.UpdatedAt,
 		})
 	}
-	
+
 	return PostListResponse{
 		Posts: postResponses,
 		Total: len(postResponses),
@@ -147,7 +150,7 @@ func GetPostByID(id string, viewerID string) (*PostDetailResponse, error) {
 		user.FullName = "Unknown User"
 		user.Avatar = ""
 	}
-	
+
 	// Lấy thông tin disease nếu có disease_link
 	var diseaseName *string
 	var diseaseDescription *string
@@ -173,13 +176,13 @@ func GetPostByID(id string, viewerID string) (*PostDetailResponse, error) {
 			}
 		}
 	}
-	
+
 	// Lấy danh sách bình luận liên quan đến bài viết với thông tin user
 	var rawComments []comments.Comments
 	if err := service.db.Where("post_id = ?", post.ID).Order("created_at DESC").Find(&rawComments).Error; err != nil {
 		return nil, err
 	}
-	
+
 	var commentList []comments.CommentResponse
 	for _, comment := range rawComments {
 		// Query user info for each comment
@@ -192,7 +195,7 @@ func GetPostByID(id string, viewerID string) (*PostDetailResponse, error) {
 			userInfo.FullName = "Unknown User"
 			userInfo.Avatar = ""
 		}
-		
+
 		commentList = append(commentList, comments.CommentResponse{
 			ID:        comment.ID,
 			PostID:    comment.PostID,
@@ -206,7 +209,7 @@ func GetPostByID(id string, viewerID string) (*PostDetailResponse, error) {
 			UpdatedAt: comment.UpdatedAt,
 		})
 	}
-	
+
 	return &PostDetailResponse{
 		ID:                 post.ID,
 		UserID:             post.UserID,
@@ -234,14 +237,14 @@ func GetPostByID(id string, viewerID string) (*PostDetailResponse, error) {
 func DeletePostByID(id string) error {
 	service := NewPostsService()
 	if err := service.db.Delete(&Post{}, "id = ?", id).Error; err != nil {
-		return err	
+		return err
 	}
 	return nil
 }
 
 func LikePost(postID string, userID string) error {
 	service := NewPostsService()
-	
+
 	// Check if like already exists to prevent duplicate
 	var count int64
 	if err := service.db.Table("post_likes").Where("user_id = ? AND post_id = ?", userID, postID).Count(&count).Error; err != nil {
@@ -250,26 +253,44 @@ func LikePost(postID string, userID string) error {
 	if count > 0 {
 		return nil // Already liked, do nothing
 	}
-	
+
 	// Use transaction to ensure both operations succeed or fail together
-	return service.db.Transaction(func(tx *gorm.DB) error {
+	if err := service.db.Transaction(func(tx *gorm.DB) error {
 		// Insert into post_likes table
 		if err := tx.Exec("INSERT INTO post_likes (user_id, post_id, created_at) VALUES (?, ?, NOW())", userID, postID).Error; err != nil {
 			return err
 		}
-		
+
 		// Increment like_num in posts table
 		if err := tx.Model(&Post{}).Where("id = ?", postID).UpdateColumn("like_num", gorm.Expr("like_num + ?", 1)).Error; err != nil {
 			return err
 		}
-		
+
 		return nil
-	})
+	}); err != nil {
+		return err
+	}
+
+	// After successful like, send notification to post owner (if not self)
+	var post Post
+	if err := service.db.Select("id, user_id").Where("id = ?", postID).First(&post).Error; err == nil {
+		if post.UserID != userID {
+			var liker users.User
+			if err := service.db.Select("full_name").Where("id = ?", userID).First(&liker).Error; err != nil {
+				liker.FullName = "Ai đó"
+			}
+			title := "Bài viết của bạn được thích"
+			content := fmt.Sprintf("%s đã thích bài viết của bạn.", liker.FullName)
+			_ = noti.CreatePostNotification(post.UserID, &post.ID, title, content)
+		}
+	}
+
+	return nil
 }
 
 func UnlikePost(postID string, userID string) error {
 	service := NewPostsService()
-	
+
 	// Check if like exists
 	var count int64
 	if err := service.db.Table("post_likes").Where("user_id = ? AND post_id = ?", userID, postID).Count(&count).Error; err != nil {
@@ -278,19 +299,19 @@ func UnlikePost(postID string, userID string) error {
 	if count == 0 {
 		return nil // Not liked, do nothing
 	}
-	
+
 	// Use transaction to ensure both operations succeed or fail together
 	return service.db.Transaction(func(tx *gorm.DB) error {
 		// Delete from post_likes table
 		if err := tx.Exec("DELETE FROM post_likes WHERE user_id = ? AND post_id = ?", userID, postID).Error; err != nil {
 			return err
 		}
-		
+
 		// Decrement like_num in posts table
 		if err := tx.Model(&Post{}).Where("id = ? AND like_num > 0", postID).UpdateColumn("like_num", gorm.Expr("like_num - ?", 1)).Error; err != nil {
 			return err
 		}
-		
+
 		return nil
 	})
 }
@@ -309,7 +330,7 @@ func GetPostsByUserID(userID string, viewerID string) (PostListResponse, error) 
 	if err := service.db.Where("user_id = ?", userID).Find(&posts).Error; err != nil {
 		return PostListResponse{}, err
 	}
-	
+
 	// Batch-fetch likes for all posts by viewerID to avoid N+1
 	postIDs := make([]string, len(posts))
 	for i, p := range posts {
@@ -331,7 +352,7 @@ func GetPostsByUserID(userID string, viewerID string) (PostListResponse, error) 
 	for _, pid := range likedPostIDs {
 		likedMap[pid] = true
 	}
-	
+
 	var postResponses []PostResponse
 	for _, post := range posts {
 		// Lấy thông tin user từ UserID
@@ -340,7 +361,7 @@ func GetPostsByUserID(userID string, viewerID string) (PostListResponse, error) 
 			user.FullName = "Unknown User"
 			user.Avatar = ""
 		}
-		
+
 		// Lấy thông tin disease nếu có disease_link
 		var diseaseName *string
 		var diseaseDescription *string
@@ -366,7 +387,7 @@ func GetPostsByUserID(userID string, viewerID string) (PostListResponse, error) 
 				}
 			}
 		}
-		
+
 		postResponses = append(postResponses, PostResponse{
 			ID:                 post.ID,
 			UserID:             post.UserID,
@@ -389,7 +410,7 @@ func GetPostsByUserID(userID string, viewerID string) (PostListResponse, error) 
 			UpdatedAt:          post.UpdatedAt,
 		})
 	}
-	
+
 	return PostListResponse{
 		Posts: postResponses,
 		Total: len(postResponses),
