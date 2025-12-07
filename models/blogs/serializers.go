@@ -9,6 +9,7 @@ type CreateNewsRequest struct {
 	Description   *string `json:"description"`
 	Content       string  `json:"content" binding:"required"`
 	CoverImageURL *string `json:"cover_image_url"`
+	BlogTagID     *string `json:"blog_tag_id"`
 	Status        string  `json:"status"` // draft or published
 }
 
@@ -16,6 +17,8 @@ type NewsResponse struct {
 	ID            string     `json:"id"`
 	Title         string     `json:"title"`
 	Description   *string    `json:"description"`
+	BlogTagID     *string    `json:"blog_tag_id"`
+	BlogTagName   *string    `json:"blog_tag_name,omitempty"`
 	CoverImageURL *string    `json:"cover_image_url"`
 	Status        string     `json:"status"`
 	PublishedAt   *time.Time `json:"published_at"`
@@ -36,6 +39,8 @@ type NewsDetailResponse struct {
 	Title         string     `json:"title"`
 	Description   *string    `json:"description"`
 	Content       string     `json:"content"`
+	BlogTagID     *string    `json:"blog_tag_id"`
+	BlogTagName   *string    `json:"blog_tag_name,omitempty"`
 	CoverImageURL *string    `json:"cover_image_url"`
 	Status        string     `json:"status"`
 	PublishedAt   *time.Time `json:"published_at"`
@@ -52,6 +57,8 @@ type BlogSummaryResponse struct {
 	Title         string  `json:"title"`
 	Description   *string `json:"description,omitempty"`
 	Content       string  `json:"content"`
+	BlogTagID     *string `json:"blog_tag_id,omitempty"`
+	BlogTagName   *string `json:"blog_tag_name,omitempty"`
 	CoverImageURL *string `json:"cover_image_url"`
 }
 
@@ -61,6 +68,7 @@ func (b *Blog) ToBlogSummaryResponse() BlogSummaryResponse {
 		Title:         b.Title,
 		Description:   b.Description,
 		Content:       b.Content,
+		BlogTagID:     b.BlogTagID,
 		CoverImageURL: b.CoverImageURL,
 	}
 }

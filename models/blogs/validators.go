@@ -17,6 +17,19 @@ func ValidateCreateNewsRequest(req *CreateNewsRequest) error {
 		return errors.New("news title must be less than 200 characters")
 	}
 
+	// Validate blog tag id if provided
+	if req.BlogTagID != nil {
+		blogTagID := strings.TrimSpace(*req.BlogTagID)
+		if blogTagID == "" {
+			req.BlogTagID = nil
+		} else {
+			if _, err := uuid.Parse(blogTagID); err != nil {
+				return errors.New("blog_tag_id must be a valid UUID")
+			}
+			req.BlogTagID = &blogTagID
+		}
+	}
+
 	// Validate description
 	if req.Description != nil {
 		desc := strings.TrimSpace(*req.Description)

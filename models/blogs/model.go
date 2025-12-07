@@ -13,6 +13,7 @@ type Blog struct {
 	Description      *string    `json:"description" gorm:"type:text"`
 	Content          string     `json:"content" gorm:"not null;type:text"`
 	CoverImageURL    *string    `json:"cover_image_url" gorm:"type:text"`
+	BlogTagID        *string    `json:"blog_tag_id" gorm:"type:uuid"`
 	SubGuideStagesID *string    `json:"sub_guide_stages_id" gorm:"type:uuid"`
 	UserID           string     `json:"user_id" gorm:"not null;type:uuid"`
 	Status           string     `json:"status" gorm:"type:varchar(50);default:'draft'"`

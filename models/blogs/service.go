@@ -2,6 +2,7 @@ package blogs
 
 import (
 	"plantheon-backend/common"
+	"plantheon-backend/models/blog_tags"
 	"plantheon-backend/models/users"
 
 	"gorm.io/gorm"
@@ -33,6 +34,7 @@ func UpdateNews(blog *Blog) error {
 		"description":     blog.Description,
 		"content":         blog.Content,
 		"cover_image_url": blog.CoverImageURL,
+		"blog_tag_id":     blog.BlogTagID,
 		"status":          blog.Status,
 	}
 
@@ -47,11 +49,15 @@ func UpdateNews(blog *Blog) error {
 	return nil
 }
 
-func GetAllNews() (NewsListResponse, error) {
+func GetAllNews(size *int) (NewsListResponse, error) {
 	service := NewBlogsService()
 	var blogs []Blog
 	// Only fetch published blogs that are NOT linked to any sub guide stage
-	if err := service.db.Where("status = ? AND sub_guide_stages_id IS NULL", "published").Find(&blogs).Error; err != nil {
+	query := service.db.Where("status = ? AND sub_guide_stages_id IS NULL", "published").Order("created_at DESC")
+	if size != nil {
+		query = query.Limit(*size)
+	}
+	if err := query.Find(&blogs).Error; err != nil {
 		return NewsListResponse{}, err
 	}
 
@@ -65,6 +71,8 @@ func GetAllNews() (NewsListResponse, error) {
 				ID:            blog.ID,
 				Title:         blog.Title,
 				Description:   blog.Description,
+				BlogTagID:     blog.BlogTagID,
+				BlogTagName:   resolveBlogTagName(service.db, blog.BlogTagID),
 				CoverImageURL: blog.CoverImageURL,
 				Status:        blog.Status,
 				PublishedAt:   blog.PublishedAt,
@@ -81,6 +89,8 @@ func GetAllNews() (NewsListResponse, error) {
 			ID:            blog.ID,
 			Title:         blog.Title,
 			Description:   blog.Description,
+			BlogTagID:     blog.BlogTagID,
+			BlogTagName:   resolveBlogTagName(service.db, blog.BlogTagID),
 			CoverImageURL: blog.CoverImageURL,
 			Status:        blog.Status,
 			PublishedAt:   blog.PublishedAt,
@@ -114,6 +124,8 @@ func GetNewsByID(id string) (*NewsDetailResponse, error) {
 			Title:         blog.Title,
 			Description:   blog.Description,
 			Content:       blog.Content,
+			BlogTagID:     blog.BlogTagID,
+			BlogTagName:   resolveBlogTagName(service.db, blog.BlogTagID),
 			CoverImageURL: blog.CoverImageURL,
 			Status:        blog.Status,
 			PublishedAt:   blog.PublishedAt,
@@ -130,6 +142,8 @@ func GetNewsByID(id string) (*NewsDetailResponse, error) {
 		Title:         blog.Title,
 		Description:   blog.Description,
 		Content:       blog.Content,
+		BlogTagID:     blog.BlogTagID,
+		BlogTagName:   resolveBlogTagName(service.db, blog.BlogTagID),
 		CoverImageURL: blog.CoverImageURL,
 		Status:        blog.Status,
 		PublishedAt:   blog.PublishedAt,
@@ -165,6 +179,8 @@ func GetNewsByUserID(userID string) (NewsListResponse, error) {
 				ID:            blog.ID,
 				Title:         blog.Title,
 				Description:   blog.Description,
+				BlogTagID:     blog.BlogTagID,
+				BlogTagName:   resolveBlogTagName(service.db, blog.BlogTagID),
 				CoverImageURL: blog.CoverImageURL,
 				Status:        blog.Status,
 				PublishedAt:   blog.PublishedAt,
@@ -181,6 +197,8 @@ func GetNewsByUserID(userID string) (NewsListResponse, error) {
 			ID:            blog.ID,
 			Title:         blog.Title,
 			Description:   blog.Description,
+			BlogTagID:     blog.BlogTagID,
+			BlogTagName:   resolveBlogTagName(service.db, blog.BlogTagID),
 			CoverImageURL: blog.CoverImageURL,
 			Status:        blog.Status,
 			PublishedAt:   blog.PublishedAt,
@@ -196,6 +214,18 @@ func GetNewsByUserID(userID string) (NewsListResponse, error) {
 		News:  newsResponses,
 		Total: len(newsResponses),
 	}, nil
+}
+
+// resolveBlogTagName safely fetches tag name for given tag id using provided db.
+func resolveBlogTagName(db *gorm.DB, tagID *string) *string {
+	if tagID == nil || *tagID == "" {
+		return nil
+	}
+	var tag blog_tags.BlogTag
+	if err := db.Select("id", "name").Where("id = ?", *tagID).First(&tag).Error; err != nil {
+		return nil
+	}
+	return &tag.Name
 }
 
 // GetBlogsBySubGuideStageID returns published blogs linked to a sub guide stage.
