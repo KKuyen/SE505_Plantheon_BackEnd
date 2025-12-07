@@ -8,13 +8,14 @@ import (
 )
 
 type GuideStage struct {
-	ID            string     `json:"id" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
-	PlantID       string     `json:"plant_id" gorm:"not null;type:uuid"`
-	StageTitle    string     `json:"stage_title" gorm:"not null;type:text"`
+	ID             string    `json:"id" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
+	PlantID        string    `json:"plant_id" gorm:"not null;type:uuid"`
+	StageTitle     string    `json:"stage_title" gorm:"not null;type:text"`
+	Description    *string   `json:"description" gorm:"type:text"`
 	StartDayOffset int       `json:"start_day_offset" gorm:"not null"`
-	EndDayOffset  int        `json:"end_day_offset" gorm:"not null"`
-	ImageURL      *string    `json:"image_url" gorm:"type:text"`
-	CreatedAt     time.Time  `json:"created_at" gorm:"default:now()"`
+	EndDayOffset   int       `json:"end_day_offset" gorm:"not null"`
+	ImageURL       *string   `json:"image_url" gorm:"type:text"`
+	CreatedAt      time.Time `json:"created_at" gorm:"default:now()"`
 }
 
 // BeforeCreate will set a UUID rather than numeric ID.

@@ -7,6 +7,7 @@ import (
 	"plantheon-backend/common"
 	"plantheon-backend/models/activities"
 	"plantheon-backend/models/activity_keywords"
+	"plantheon-backend/models/blog_tags"
 	"plantheon-backend/models/blogs"
 	"plantheon-backend/models/comments"
 	"plantheon-backend/models/disease_activity_keywords"
@@ -46,6 +47,7 @@ func main() {
 		&disease_activity_keywords.DiseaseActivityKeyword{},
 		&post_likes.PostLike{},
 		&blogs.Blog{},
+		&blog_tags.BlogTag{},
 		&plants.Plant{},
 		&guide_stages.GuideStage{},
 		&sub_guide_stages.SubGuideStage{},
@@ -296,6 +298,17 @@ func main() {
 			adminNewsRoutes.POST("", blogs.CreateNewsHandler)
 			adminNewsRoutes.PUT("/:id", blogs.UpdateNewsHandler)
 			adminNewsRoutes.DELETE("/:id", blogs.DeleteNewsHandler)
+		}
+		// Public news tag routes
+		api.GET("/news-tags", blog_tags.GetAllBlogTagsHandler)
+
+		// news tag routes (admin only)
+		blogTagRoutes := api.Group("/news-tags")
+		blogTagRoutes.Use(users.RequireAdmin())
+		{
+			blogTagRoutes.POST("", blog_tags.CreateBlogTagHandler)
+			blogTagRoutes.PUT("/:id", blog_tags.UpdateBlogTagHandler)
+			blogTagRoutes.DELETE("/:id", blog_tags.DeleteBlogTagHandler)
 		}
 
 		notificationRoutes := api.Group("/notification")

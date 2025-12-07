@@ -2,9 +2,10 @@ package comments
 
 import (
 	"net/http"
-
 	"plantheon-backend/common"
+	"plantheon-backend/models/noti"
 	"plantheon-backend/models/users"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,7 +29,7 @@ func AddCommentHandler(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	user, ok := userInterface.(*users.User)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -61,6 +62,21 @@ func AddCommentHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to increase comment number"})
 		return
 	}
+
+	// Gửi thông báo cho chủ bài viết (nếu không phải chính họ)
+	var postOwner struct{ UserID string }
+	db := common.GetDB()
+	if err := db.Table("posts").Select("user_id").Where("id = ?", postID).First(&postOwner).Error; err == nil {
+		if postOwner.UserID != user.ID {
+			snippet := strings.TrimSpace(req.Content)
+			if len(snippet) > 100 {
+				snippet = snippet[:100] + "..."
+			}
+			title := "Bài viết của bạn có bình luận mới"
+			content := user.FullName + " đã bình luận: " + snippet
+			_ = noti.CreatePostNotification(postOwner.UserID, &comment.PostID, title, content)
+		}
+	}
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Comment added successfully",
 		"data": gin.H{
@@ -76,7 +92,7 @@ func AddCommentHandler(c *gin.Context) {
 	})
 }
 
-func UpdateCommentHandler (c *gin.Context) {
+func UpdateCommentHandler(c *gin.Context) {
 	commentID := c.Param("id")
 	var req UpdateCommentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -156,7 +172,7 @@ func GetCommentsByPostIDHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Post ID is required"})
 		return
 	}
-	
+
 	// Extract viewer's user ID from JWT token
 	viewerID := ""
 	userInterface, exists := c.Get("user")
@@ -166,15 +182,15 @@ func GetCommentsByPostIDHandler(c *gin.Context) {
 			viewerID = user.ID
 		}
 	}
-	
+
 	comments, err := GetCommentsByPostID(postID, viewerID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get comments"})
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
-		"data": comments,
+		"data":  comments,
 		"total": len(comments),
 	})
 }

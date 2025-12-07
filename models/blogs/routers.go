@@ -2,15 +2,29 @@ package blogs
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
+	"plantheon-backend/models/blog_tags"
 	"plantheon-backend/models/users"
 
 	"github.com/gin-gonic/gin"
 )
 
 func GetNewsHandler(c *gin.Context) {
-	news, err := GetAllNews()
+	var size *int
+	if sizeParam := c.Query("size"); sizeParam != "" {
+		parsed, err := strconv.Atoi(sizeParam)
+		if err != nil || parsed <= 0 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "size must be a positive integer",
+			})
+			return
+		}
+		size = &parsed
+	}
+
+	news, err := GetAllNews(size)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to get news",
@@ -79,11 +93,23 @@ func CreateNewsHandler(c *gin.Context) {
 	}
 
 	blog := &Blog{
-		Title:       req.Title,
-		Content:     req.Content,
+		Title:         req.Title,
+		Description:   req.Description,
+		Content:       req.Content,
 		CoverImageURL: req.CoverImageURL,
-		Status:      req.Status,
-		UserID:      user.ID,
+		BlogTagID:     req.BlogTagID,
+		Status:        req.Status,
+		UserID:        user.ID,
+	}
+
+	// Validate provided blog tag id exists
+	if blog.BlogTagID != nil {
+		if _, err := blog_tags.GetBlogTagByID(*blog.BlogTagID); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "blog_tag_id is invalid",
+			})
+			return
+		}
 	}
 
 	if req.Status == "published" {
@@ -101,14 +127,16 @@ func CreateNewsHandler(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "News created successfully",
 		"data": gin.H{
-			"id":             blog.ID,
-			"title":          blog.Title,
-			"content":        blog.Content,
+			"id":              blog.ID,
+			"title":           blog.Title,
+			"description":     blog.Description,
+			"content":         blog.Content,
 			"cover_image_url": blog.CoverImageURL,
-			"status":         blog.Status,
-			"published_at":   blog.PublishedAt,
-			"user_id":        blog.UserID,
-			"created_at":     blog.CreatedAt,
+			"blog_tag_id":     blog.BlogTagID,
+			"status":          blog.Status,
+			"published_at":    blog.PublishedAt,
+			"user_id":         blog.UserID,
+			"created_at":      blog.CreatedAt,
 		},
 	})
 }
@@ -138,11 +166,23 @@ func UpdateNewsHandler(c *gin.Context) {
 	}
 
 	blog := &Blog{
-		ID:          id,
-		Title:       req.Title,
-		Content:     req.Content,
+		ID:            id,
+		Title:         req.Title,
+		Description:   req.Description,
+		Content:       req.Content,
 		CoverImageURL: req.CoverImageURL,
-		Status:      req.Status,
+		BlogTagID:     req.BlogTagID,
+		Status:        req.Status,
+	}
+
+	// Validate provided blog tag id exists
+	if blog.BlogTagID != nil {
+		if _, err := blog_tags.GetBlogTagByID(*blog.BlogTagID); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "blog_tag_id is invalid",
+			})
+			return
+		}
 	}
 
 	if req.Status == "published" {
@@ -164,12 +204,14 @@ func UpdateNewsHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "News updated successfully",
 		"data": gin.H{
-			"id":             blog.ID,
-			"title":          blog.Title,
-			"content":        blog.Content,
+			"id":              blog.ID,
+			"title":           blog.Title,
+			"description":     blog.Description,
+			"content":         blog.Content,
 			"cover_image_url": blog.CoverImageURL,
-			"status":         blog.Status,
-			"updated_at":     blog.UpdatedAt,
+			"blog_tag_id":     blog.BlogTagID,
+			"status":          blog.Status,
+			"updated_at":      blog.UpdatedAt,
 		},
 	})
 }

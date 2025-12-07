@@ -2,6 +2,7 @@ package blogs
 
 import (
 	"plantheon-backend/common"
+	"plantheon-backend/models/blog_tags"
 	"plantheon-backend/models/users"
 
 	"gorm.io/gorm"
@@ -30,26 +31,33 @@ func UpdateNews(blog *Blog) error {
 	// Use Updates to only update the fields that are provided
 	updates := map[string]interface{}{
 		"title":           blog.Title,
+		"description":     blog.Description,
 		"content":         blog.Content,
 		"cover_image_url": blog.CoverImageURL,
+		"blog_tag_id":     blog.BlogTagID,
 		"status":          blog.Status,
 	}
-	
+
 	// Only update published_at if it's being set (not nil)
 	if blog.PublishedAt != nil {
 		updates["published_at"] = blog.PublishedAt
 	}
-	
+
 	if err := service.db.Model(&Blog{}).Where("id = ?", blog.ID).Updates(updates).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func GetAllNews() (NewsListResponse, error) {
+func GetAllNews(size *int) (NewsListResponse, error) {
 	service := NewBlogsService()
 	var blogs []Blog
-	if err := service.db.Where("status = ?", "published").Find(&blogs).Error; err != nil {
+	// Only fetch published blogs that are NOT linked to any sub guide stage
+	query := service.db.Where("status = ? AND sub_guide_stages_id IS NULL", "published").Order("created_at DESC")
+	if size != nil {
+		query = query.Limit(*size)
+	}
+	if err := query.Find(&blogs).Error; err != nil {
 		return NewsListResponse{}, err
 	}
 
@@ -60,33 +68,37 @@ func GetAllNews() (NewsListResponse, error) {
 		if err := service.db.Where("id = ?", blog.UserID).First(&user).Error; err != nil {
 			// Nếu không tìm thấy user, vẫn trả về blog nhưng với thông tin user rỗng
 			newsResponses = append(newsResponses, NewsResponse{
-				ID:           blog.ID,
-				Title:        blog.Title,
-				Content:     blog.Content,
+				ID:            blog.ID,
+				Title:         blog.Title,
+				Description:   blog.Description,
+				BlogTagID:     blog.BlogTagID,
+				BlogTagName:   resolveBlogTagName(service.db, blog.BlogTagID),
 				CoverImageURL: blog.CoverImageURL,
-				Status:       blog.Status,
-				PublishedAt:  blog.PublishedAt,
-				CreatedAt:    blog.CreatedAt,
-				UpdatedAt:    blog.UpdatedAt,
-				UserID:       blog.UserID,
-				FullName:     "Unknown User",
-				Avatar:       "",
+				Status:        blog.Status,
+				PublishedAt:   blog.PublishedAt,
+				CreatedAt:     blog.CreatedAt,
+				UpdatedAt:     blog.UpdatedAt,
+				UserID:        blog.UserID,
+				FullName:      "Unknown User",
+				Avatar:        "",
 			})
 			continue
 		}
 
 		newsResponses = append(newsResponses, NewsResponse{
-			ID:           blog.ID,
-			Title:        blog.Title,
-			Content:      blog.Content,
+			ID:            blog.ID,
+			Title:         blog.Title,
+			Description:   blog.Description,
+			BlogTagID:     blog.BlogTagID,
+			BlogTagName:   resolveBlogTagName(service.db, blog.BlogTagID),
 			CoverImageURL: blog.CoverImageURL,
-			Status:       blog.Status,
-			PublishedAt:  blog.PublishedAt,
-			CreatedAt:    blog.CreatedAt,
-			UpdatedAt:    blog.UpdatedAt,
-			UserID:       blog.UserID,
-			FullName:     user.FullName,
-			Avatar:       user.Avatar,
+			Status:        blog.Status,
+			PublishedAt:   blog.PublishedAt,
+			CreatedAt:     blog.CreatedAt,
+			UpdatedAt:     blog.UpdatedAt,
+			UserID:        blog.UserID,
+			FullName:      user.FullName,
+			Avatar:        user.Avatar,
 		})
 	}
 
@@ -108,32 +120,38 @@ func GetNewsByID(id string) (*NewsDetailResponse, error) {
 	if err := service.db.Where("id = ?", blog.UserID).First(&user).Error; err != nil {
 		// Nếu không tìm thấy user, trả về blog nhưng với thông tin user rỗng
 		return &NewsDetailResponse{
-			ID:           blog.ID,
-			Title:        blog.Title,
-			Content:      blog.Content,
+			ID:            blog.ID,
+			Title:         blog.Title,
+			Description:   blog.Description,
+			Content:       blog.Content,
+			BlogTagID:     blog.BlogTagID,
+			BlogTagName:   resolveBlogTagName(service.db, blog.BlogTagID),
 			CoverImageURL: blog.CoverImageURL,
-			Status:       blog.Status,
-			PublishedAt:  blog.PublishedAt,
-			CreatedAt:    blog.CreatedAt,
-			UpdatedAt:    blog.UpdatedAt,
-			UserID:       blog.UserID,
-			FullName:     "Unknown User",
-			Avatar:       "",
+			Status:        blog.Status,
+			PublishedAt:   blog.PublishedAt,
+			CreatedAt:     blog.CreatedAt,
+			UpdatedAt:     blog.UpdatedAt,
+			UserID:        blog.UserID,
+			FullName:      "Unknown User",
+			Avatar:        "",
 		}, nil
 	}
 
 	return &NewsDetailResponse{
-		ID:           blog.ID,
-		Title:        blog.Title,
-		Content:      blog.Content,
+		ID:            blog.ID,
+		Title:         blog.Title,
+		Description:   blog.Description,
+		Content:       blog.Content,
+		BlogTagID:     blog.BlogTagID,
+		BlogTagName:   resolveBlogTagName(service.db, blog.BlogTagID),
 		CoverImageURL: blog.CoverImageURL,
-		Status:       blog.Status,
-		PublishedAt:  blog.PublishedAt,
-		CreatedAt:    blog.CreatedAt,
-		UpdatedAt:    blog.UpdatedAt,
-		UserID:       blog.UserID,
-		FullName:     user.FullName,
-		Avatar:       user.Avatar,
+		Status:        blog.Status,
+		PublishedAt:   blog.PublishedAt,
+		CreatedAt:     blog.CreatedAt,
+		UpdatedAt:     blog.UpdatedAt,
+		UserID:        blog.UserID,
+		FullName:      user.FullName,
+		Avatar:        user.Avatar,
 	}, nil
 }
 
@@ -158,33 +176,37 @@ func GetNewsByUserID(userID string) (NewsListResponse, error) {
 		var user users.User
 		if err := service.db.Where("id = ?", blog.UserID).First(&user).Error; err != nil {
 			newsResponses = append(newsResponses, NewsResponse{
-				ID:           blog.ID,
-				Title:        blog.Title,
-				Content:      blog.Content,
+				ID:            blog.ID,
+				Title:         blog.Title,
+				Description:   blog.Description,
+				BlogTagID:     blog.BlogTagID,
+				BlogTagName:   resolveBlogTagName(service.db, blog.BlogTagID),
 				CoverImageURL: blog.CoverImageURL,
-				Status:       blog.Status,
-				PublishedAt:  blog.PublishedAt,
-				CreatedAt:    blog.CreatedAt,
-				UpdatedAt:    blog.UpdatedAt,
-				UserID:       blog.UserID,
-				FullName:     "Unknown User",
-				Avatar:       "",
+				Status:        blog.Status,
+				PublishedAt:   blog.PublishedAt,
+				CreatedAt:     blog.CreatedAt,
+				UpdatedAt:     blog.UpdatedAt,
+				UserID:        blog.UserID,
+				FullName:      "Unknown User",
+				Avatar:        "",
 			})
 			continue
 		}
 
 		newsResponses = append(newsResponses, NewsResponse{
-			ID:           blog.ID,
-			Title:        blog.Title,
-			Content:      blog.Content,
+			ID:            blog.ID,
+			Title:         blog.Title,
+			Description:   blog.Description,
+			BlogTagID:     blog.BlogTagID,
+			BlogTagName:   resolveBlogTagName(service.db, blog.BlogTagID),
 			CoverImageURL: blog.CoverImageURL,
-			Status:       blog.Status,
-			PublishedAt:  blog.PublishedAt,
-			CreatedAt:    blog.CreatedAt,
-			UpdatedAt:    blog.UpdatedAt,
-			UserID:       blog.UserID,
-			FullName:     user.FullName,
-			Avatar:       user.Avatar,
+			Status:        blog.Status,
+			PublishedAt:   blog.PublishedAt,
+			CreatedAt:     blog.CreatedAt,
+			UpdatedAt:     blog.UpdatedAt,
+			UserID:        blog.UserID,
+			FullName:      user.FullName,
+			Avatar:        user.Avatar,
 		})
 	}
 
@@ -192,4 +214,29 @@ func GetNewsByUserID(userID string) (NewsListResponse, error) {
 		News:  newsResponses,
 		Total: len(newsResponses),
 	}, nil
+}
+
+// resolveBlogTagName safely fetches tag name for given tag id using provided db.
+func resolveBlogTagName(db *gorm.DB, tagID *string) *string {
+	if tagID == nil || *tagID == "" {
+		return nil
+	}
+	var tag blog_tags.BlogTag
+	if err := db.Select("id", "name").Where("id = ?", *tagID).First(&tag).Error; err != nil {
+		return nil
+	}
+	return &tag.Name
+}
+
+// GetBlogsBySubGuideStageID returns published blogs linked to a sub guide stage.
+func GetBlogsBySubGuideStageID(subGuideStageID string) ([]Blog, error) {
+	service := NewBlogsService()
+	var blogs []Blog
+	if err := service.db.
+		Where("sub_guide_stages_id = ? AND status = ?", subGuideStageID, "published").
+		Order("created_at ASC").
+		Find(&blogs).Error; err != nil {
+		return nil, err
+	}
+	return blogs, nil
 }

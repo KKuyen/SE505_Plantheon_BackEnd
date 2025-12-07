@@ -76,3 +76,14 @@ func CreateNotification(notification *Notification) error {
 	return nil
 }
 
+// CreatePostNotification is a helper to create notification linked to a post.
+func CreatePostNotification(userID string, postID *string, title, content string) error {
+	notification := &Notification{
+		UserID:  userID,
+		Title:   title,
+		Content: content,
+		PostID:  postID,
+		IsRead:  false,
+	}
+	return CreateNotification(notification)
+}
