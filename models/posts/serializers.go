@@ -2,6 +2,7 @@ package posts
 
 import (
 	"plantheon-backend/models/comments"
+	"plantheon-backend/models/users"
 	"time"
 )
 
@@ -64,4 +65,11 @@ type PostDetailResponse struct {
 	ShareNum           int       `json:"share_number"`
 	CreatedAt          time.Time `json:"created_at"`
 	UpdatedAt          time.Time `json:"updated_at"`
+}
+
+// PublicUserPostsResponse bundles basic user info with that user's public posts.
+// Useful for public endpoints where no authentication context is available.
+type PublicUserPostsResponse struct {
+	User  users.UserResponse `json:"user"`
+	Posts PostListResponse   `json:"posts"`
 }

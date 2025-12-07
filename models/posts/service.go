@@ -182,37 +182,10 @@ func GetPostByID(id string, viewerID string) (*PostDetailResponse, error) {
 		}
 	}
 	
-	// Lấy danh sách bình luận liên quan đến bài viết với thông tin user
-	var rawComments []comments.Comments
-	if err := service.db.Where("post_id = ?", post.ID).Order("created_at DESC").Find(&rawComments).Error; err != nil {
+	// Lấy danh sách bình luận phẳng (bao gồm parent_id, is_like)
+	commentList, err := comments.GetCommentsByPostID(post.ID, viewerID)
+	if err != nil {
 		return nil, err
-	}
-	
-	var commentList []comments.CommentResponse
-	for _, comment := range rawComments {
-		// Query user info for each comment
-		var userInfo struct {
-			FullName string
-			Avatar   string
-		}
-		if err := service.db.Table("users").Select("full_name, avatar").Where("id = ?", comment.UserID).First(&userInfo).Error; err != nil {
-			// If user not found, use default values
-			userInfo.FullName = "Unknown User"
-			userInfo.Avatar = ""
-		}
-		
-		commentList = append(commentList, comments.CommentResponse{
-			ID:        comment.ID,
-			PostID:    comment.PostID,
-			UserID:    comment.UserID,
-			FullName:  userInfo.FullName,
-			Avatar:    userInfo.Avatar,
-			Content:   comment.Content,
-			LikeNum:   comment.LikeNum,
-			IsMe:      viewerID != "" && comment.UserID == viewerID,
-			CreatedAt: comment.CreatedAt,
-			UpdatedAt: comment.UpdatedAt,
-		})
 	}
 	
 	return &PostDetailResponse{
@@ -400,6 +373,103 @@ func GetPostsByUserID(userID string, viewerID string) (PostListResponse, error) 
 		})
 	}
 	
+	return PostListResponse{
+		Posts: postResponses,
+		Total: len(postResponses),
+	}, nil
+}
+
+// GetPublicPostsByUserID returns only posts that are publicly visible for a user.
+// A post is treated as public when its status is AVAILABLE or not set.
+func GetPublicPostsByUserID(userID string, viewerID string) (PostListResponse, error) {
+	service := NewPostsService()
+	var posts []Post
+
+	if err := service.db.Where("user_id = ?", userID).
+		Where("status IS NULL OR status = '' OR status = ?", "AVAILABLE").
+		Find(&posts).Error; err != nil {
+		return PostListResponse{}, err
+	}
+
+	// Batch-fetch likes for all posts by viewerID to avoid N+1 lookups
+	postIDs := make([]string, len(posts))
+	for i, p := range posts {
+		postIDs[i] = p.ID
+	}
+	var likedPostIDs []string
+	if viewerID != "" && len(postIDs) > 0 {
+		type LikeResult struct {
+			PostID string
+		}
+		var likeResults []LikeResult
+		if err := service.db.Table("post_likes").Select("post_id").Where("user_id = ? AND post_id IN ?", viewerID, postIDs).Find(&likeResults).Error; err == nil {
+			for _, lr := range likeResults {
+				likedPostIDs = append(likedPostIDs, lr.PostID)
+			}
+		}
+	}
+	likedMap := make(map[string]bool)
+	for _, pid := range likedPostIDs {
+		likedMap[pid] = true
+	}
+
+	var postResponses []PostResponse
+	for _, post := range posts {
+		var user users.User
+		if err := service.db.Where("id = ?", post.UserID).First(&user).Error; err != nil {
+			user.FullName = "Unknown User"
+			user.Avatar = ""
+		}
+
+		var diseaseName *string
+		var diseaseDescription *string
+		var diseaseSolution *string
+		var diseaseImageLink []string
+		if post.DiseaseLink != nil && *post.DiseaseLink != "" {
+			var disease struct {
+				Name        *string
+				Description *string
+				Solution    *string
+				ImageLink   interface{}
+			}
+			if err := service.db.Table("diseases").Select("name, description, solution, image_link").Where("id = ?", *post.DiseaseLink).First(&disease).Error; err == nil {
+				diseaseName = disease.Name
+				diseaseDescription = disease.Description
+				diseaseSolution = disease.Solution
+				if imgLinks, ok := disease.ImageLink.([]interface{}); ok {
+					for _, link := range imgLinks {
+						if strLink, ok := link.(string); ok {
+							diseaseImageLink = append(diseaseImageLink, strLink)
+						}
+					}
+				}
+			}
+		}
+
+		postResponses = append(postResponses, PostResponse{
+			ID:                 post.ID,
+			UserID:             post.UserID,
+			FullName:           user.FullName,
+			Avatar:             user.Avatar,
+			Content:            post.Content,
+			ImageLink:          post.ImageLink,
+			DiseaseLink:        post.DiseaseLink,
+			DiseaseName:        diseaseName,
+			DiseaseDescription: diseaseDescription,
+			DiseaseSolution:    diseaseSolution,
+			DiseaseImageLink:   diseaseImageLink,
+			ScanHistoryID:      post.ScanHistoryID,
+			Tags:               post.Tags,
+			LikeNum:            post.LikeNum,
+			Liked:              likedMap[post.ID],
+			IsMyPost:           viewerID != "" && post.UserID == viewerID,
+			CommentNum:         post.CommentNum,
+			ShareNum:           post.ShareNum,
+			CreatedAt:          post.CreatedAt,
+			UpdatedAt:          post.UpdatedAt,
+		})
+	}
+
 	return PostListResponse{
 		Posts: postResponses,
 		Total: len(postResponses),

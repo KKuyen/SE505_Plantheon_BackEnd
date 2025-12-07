@@ -3,6 +3,7 @@ package comments
 import (
 	"net/http"
 
+	"plantheon-backend/common"
 	"plantheon-backend/models/users"
 
 	"github.com/gin-gonic/gin"
@@ -36,13 +37,21 @@ func AddCommentHandler(c *gin.Context) {
 		return
 	}
 
+	// Validate parent if provided
+	if req.ParentID != nil && *req.ParentID != "" {
+		if err := ValidateParentComment(common.GetDB(), *req.ParentID, postID); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
 	comment := &Comments{
 		PostID:  postID,
 		Content: req.Content,
 		UserID:  user.ID, // Sử dụng user.ID từ JWT token
 	}
 
-	if err := AddComment(comment); err != nil {
+	if err := AddComment(comment, req.ParentID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -61,6 +70,7 @@ func AddCommentHandler(c *gin.Context) {
 			"full_name": user.FullName, // Thêm thông tin user
 			"avatar":    user.Avatar,   // Thêm thông tin user
 			"content":   comment.Content,
+			"parent_id": comment.ParentID,
 			"created_at": comment.CreatedAt,
 		},
 	})
@@ -167,4 +177,46 @@ func GetCommentsByPostIDHandler(c *gin.Context) {
 		"data": comments,
 		"total": len(comments),
 	})
+}
+
+// LikeCommentHandler handles liking a comment.
+func LikeCommentHandler(c *gin.Context) {
+	commentID := c.Param("commentId")
+	userInterface, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found in context"})
+		return
+	}
+	user, ok := userInterface.(*users.User)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user format"})
+		return
+	}
+
+	if err := LikeComment(commentID, user.ID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Comment liked"})
+}
+
+// UnlikeCommentHandler handles unliking a comment.
+func UnlikeCommentHandler(c *gin.Context) {
+	commentID := c.Param("commentId")
+	userInterface, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found in context"})
+		return
+	}
+	user, ok := userInterface.(*users.User)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user format"})
+		return
+	}
+
+	if err := UnlikeComment(commentID, user.ID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Comment unliked"})
 }

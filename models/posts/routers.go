@@ -3,11 +3,14 @@ package posts
 import (
 	"log"
 	"net/http"
+	"strings"
 
+	"plantheon-backend/common"
 	"plantheon-backend/models/users"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
+	"gorm.io/gorm"
 )
 
 func CreatePostHandler(c *gin.Context) {
@@ -382,6 +385,78 @@ func GetPostsByUserIDHandler(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"data": posts,
+	})
+}
+
+// GetPublicUserProfileWithPostsHandler exposes user info and their public posts without requiring authentication.
+func GetPublicUserProfileWithPostsHandler(c *gin.Context) {
+	userId := c.Param("userId")
+	if err := ValidateIdParam(userId); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	// Optional viewer context: if caller provides a valid token, use it to compute liked/is_my_post flags
+	viewerID := ""
+	authHeader := c.GetHeader("Authorization")
+	if authHeader != "" {
+		if !strings.HasPrefix(authHeader, "Bearer ") {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "Invalid authorization header format",
+			})
+			return
+		}
+
+		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+		if tokenString == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "Token is required",
+			})
+			return
+		}
+
+		claims, err := common.ValidateJWT(tokenString)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "Invalid token",
+			})
+			return
+		}
+
+		viewerID = claims.UserID
+	}
+
+	user, err := users.GetUserByID(userId)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "User not found",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get user",
+		})
+		return
+	}
+
+	posts, err := GetPublicPostsByUserID(userId, viewerID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get posts",
+		})
+		return
+	}
+
+	response := PublicUserPostsResponse{
+		User:  user.ToUserResponse(),
+		Posts: posts,
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": response,
 	})
 }
 

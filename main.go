@@ -38,6 +38,7 @@ func main() {
 		&users.User{},
 		&posts.Post{},
 		&comments.Comments{},
+		&comments.CommentLike{},
 		&diseases.Disease{},
 		&scan_history.ScanHistory{},
 		&activities.Activity{},
@@ -87,6 +88,12 @@ func main() {
 		{
 			auth.POST("/register", users.Register)
 			auth.POST("/login", users.Login)
+		}
+
+		// Public routes (no auth required)
+		publicRoutes := api.Group("/public")
+		{
+			publicRoutes.GET("/users/:userId", posts.GetPublicUserProfileWithPostsHandler)
 		}
 
 		// User routes (protected)
@@ -217,6 +224,8 @@ func main() {
 			postRoutes.POST("/:id/comments", comments.AddCommentHandler)
 			postRoutes.PUT("/:id/comments", comments.UpdateCommentHandler)
 			postRoutes.DELETE("/comments/:commentId", comments.DeleteCommentHandler)
+			postRoutes.PUT("/comments/:commentId/like", comments.LikeCommentHandler)
+			postRoutes.PUT("/comments/:commentId/unlike", comments.UnlikeCommentHandler)
 			postRoutes.GET("/user/:userId", posts.GetPostsByUserIDHandler)
 		}
 		
