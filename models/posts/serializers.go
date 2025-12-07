@@ -31,6 +31,7 @@ type PostResponse struct {
 	Tags               []string  `json:"tags"`
 	LikeNum            int       `json:"like_number"`
 	Liked              bool      `json:"liked"`
+	IsMyPost           bool      `json:"is_my_post"`
 	CommentNum         int       `json:"comment_number"`
 	ShareNum           int       `json:"share_number"`
 	CreatedAt          time.Time `json:"created_at"`
@@ -57,6 +58,7 @@ type PostDetailResponse struct {
 	Tags               []string  `json:"tags"`
 	LikeNum            int       `json:"like_number"`
 	Liked              bool      `json:"liked"`
+	IsMyPost           bool      `json:"is_my_post"`
 	CommentNum         int       `json:"comment_number"`
 	CommentList        []comments.CommentResponse `json:"comment_list"`
 	ShareNum           int       `json:"share_number"`

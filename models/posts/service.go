@@ -36,7 +36,14 @@ func UpdatePost(post *Post) error {
 func GetAllPosts(viewerID string) (PostListResponse, error) {
 	service := NewPostsService()
 	var posts []Post
-	if err := service.db.Find(&posts).Error; err != nil {
+	
+	// Exclude viewer's own posts if viewerID is provided
+	query := service.db
+	if viewerID != "" {
+		query = query.Where("user_id != ?", viewerID)
+	}
+	
+	if err := query.Find(&posts).Error; err != nil {
 		return PostListResponse{}, err
 	}
 	
@@ -113,6 +120,7 @@ func GetAllPosts(viewerID string) (PostListResponse, error) {
 			Tags:               post.Tags,
 			LikeNum:            post.LikeNum,
 			Liked:              likedMap[post.ID],
+			IsMyPost:           viewerID != "" && post.UserID == viewerID,
 			CommentNum:         post.CommentNum,
 			ShareNum:           post.ShareNum,
 			CreatedAt:          post.CreatedAt,
@@ -223,6 +231,7 @@ func GetPostByID(id string, viewerID string) (*PostDetailResponse, error) {
 		Tags:               post.Tags,
 		LikeNum:            post.LikeNum,
 		Liked:              liked,
+		IsMyPost:           viewerID != "" && post.UserID == viewerID,
 		CommentNum:         post.CommentNum,
 		ShareNum:           post.ShareNum,
 		CreatedAt:          post.CreatedAt,
@@ -383,6 +392,7 @@ func GetPostsByUserID(userID string, viewerID string) (PostListResponse, error) 
 			Tags:               post.Tags,
 			LikeNum:            post.LikeNum,
 			Liked:              likedMap[post.ID],
+			IsMyPost:           viewerID != "" && post.UserID == viewerID,
 			CommentNum:         post.CommentNum,
 			ShareNum:           post.ShareNum,
 			CreatedAt:          post.CreatedAt,

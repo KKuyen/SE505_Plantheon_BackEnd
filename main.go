@@ -205,6 +205,7 @@ func main() {
 		postRoutes.Use(users.AuthMiddleware())
 		{
 			postRoutes.GET("", posts.GetPostsHandler)
+			postRoutes.GET("/my", posts.GetMyPostsHandler)
 			postRoutes.GET("/:id", posts.GetPostByIDHandler)
 			postRoutes.POST("", posts.CreatePostHandler)
 			postRoutes.PUT("/:id", posts.UpdatePostHandler)
@@ -218,10 +219,12 @@ func main() {
 			postRoutes.DELETE("/comments/:commentId", comments.DeleteCommentHandler)
 			postRoutes.GET("/user/:userId", posts.GetPostsByUserIDHandler)
 		}
+		
 
 		// Guide Stage routes
 		guideStageRoutes := api.Group("/guide-stages")
 		{
+
 			// Public routes
 			guideStageRoutes.GET("/:id", guide_stages.GetGuideStageByIDHandler)
 			guideStageRoutes.GET("/plant/:plant_id", guide_stages.GetGuideStagesByPlantIDHandler)

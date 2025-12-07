@@ -1,6 +1,7 @@
 package posts
 
 import (
+	"log"
 	"net/http"
 
 	"plantheon-backend/models/users"
@@ -29,13 +30,16 @@ func CreatePostHandler(c *gin.Context) {
 
 	var req CreatePostRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Printf("ERROR - Failed to bind JSON: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid request",
+			"details": err.Error(),
 		})
 		return
 	}
 
 	if err := ValidateCreatePostRequest(&req); err != nil {
+		log.Printf("ERROR - Validation failed: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
@@ -51,9 +55,13 @@ func CreatePostHandler(c *gin.Context) {
 		Tags:          pq.StringArray(req.Tags),
 	}
 	
+	log.Printf("DEBUG - Creating post: UserID=%s, DiseaseLink=%v, ScanHistoryID=%v", post.UserID, post.DiseaseLink, post.ScanHistoryID)
+	
 	if err := CreatePost(post); err != nil {
+		log.Printf("ERROR - Failed to create post in database: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to create post",
+			"details": err.Error(),
 		})
 		return
 	}
@@ -201,13 +209,53 @@ func DeletePostByIDHandler(c *gin.Context) {
 		})
 		return
 	}
-	if err := DeletePostByID(id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+	
+	// Extract user ID from JWT token
+	userInterface, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User not found in context",
 		})
 		return
 	}
 
+	user, ok := userInterface.(*users.User)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Invalid user format",
+		})
+		return
+	}
+	
+	// Get post to check ownership
+	post, err := GetPostByID(id, user.ID)
+	if err != nil {
+		log.Printf("ERROR - Failed to get post %s: %v", id, err)
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Post not found",
+		})
+		return
+	}
+	
+	// Check if user is the owner of the post
+	if post.UserID != user.ID {
+		log.Printf("WARNING - User %s attempted to delete post %s owned by %s", user.ID, id, post.UserID)
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "You don't have permission to delete this post",
+		})
+		return
+	}
+	
+	if err := DeletePostByID(id); err != nil {
+		log.Printf("ERROR - Failed to delete post %s: %v", id, err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to delete post",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	log.Printf("INFO - Post %s deleted successfully by user %s", id, user.ID)
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Post deleted successfully",
 	})
@@ -332,6 +380,40 @@ func GetPostsByUserIDHandler(c *gin.Context) {
 		})
 		return
 	}
+	c.JSON(http.StatusOK, gin.H{
+		"data": posts,
+	})
+}
+
+func GetMyPostsHandler(c *gin.Context) {
+	// Extract user ID from JWT token
+	userInterface, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User not found in context",
+		})
+		return
+	}
+
+	user, ok := userInterface.(*users.User)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Invalid user format",
+		})
+		return
+	}
+	
+	// Get posts by the authenticated user's ID
+	posts, err := GetPostsByUserID(user.ID, user.ID)
+	if err != nil {
+		log.Printf("ERROR - Failed to get posts for user %s: %v", user.ID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get posts",
+			"details": err.Error(),
+		})
+		return
+	}
+	
 	c.JSON(http.StatusOK, gin.H{
 		"data": posts,
 	})
