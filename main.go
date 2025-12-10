@@ -62,9 +62,20 @@ func main() {
 
 	// CORS middleware
 	router.Use(func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "*")
-		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		origin := c.GetHeader("Origin")
+		allowedOrigins := map[string]bool{
+			"http://localhost:8000": true,
+			"http://127.0.0.1:8000": true,
+		}
+		if allowedOrigins[origin] {
+			c.Header("Access-Control-Allow-Origin", origin)
+		} else {
+			c.Header("Access-Control-Allow-Origin", "*")
+		}
+
+		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Authorization")
+		c.Header("Access-Control-Allow-Credentials", "true")
 
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(204)
@@ -111,10 +122,11 @@ func main() {
 		adminUserRoutes.Use(users.RequireAdmin())
 		{
 			// Add admin-only user management endpoints here
-			// adminUserRoutes.GET("", users.GetAllUsers)
-			// adminUserRoutes.GET("/:id", users.GetUserByIDHandler)
-			// adminUserRoutes.PUT("/:id/role", users.UpdateUserRole)
-			// adminUserRoutes.DELETE("/:id", users.DeleteUserHandler)
+			adminUserRoutes.GET("", users.GetAllUsers)
+			adminUserRoutes.GET("/:id", users.GetUserByIDHandler)
+			adminUserRoutes.PUT("/:id", users.UpdateUserByAdminHandler)
+			adminUserRoutes.PATCH("/:id/disable", users.DisableUserHandler)
+			adminUserRoutes.PATCH("/:id/enable", users.EnableUserHandler)
 		}
 
 		// Disease routes
@@ -230,7 +242,6 @@ func main() {
 			postRoutes.PUT("/comments/:commentId/unlike", comments.UnlikeCommentHandler)
 			postRoutes.GET("/user/:userId", posts.GetPostsByUserIDHandler)
 		}
-		
 
 		// Guide Stage routes
 		guideStageRoutes := api.Group("/guide-stages")

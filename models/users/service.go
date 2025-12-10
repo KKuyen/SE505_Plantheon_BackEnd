@@ -26,13 +26,37 @@ func CreateUser(user *User) error {
 		return err
 	}
 	user.Password = hashedPassword
-	
+
 	// Set default role if not specified
 	if user.Role == "" {
 		user.Role = RoleUser
 	}
-	
+	// Activate by default
+	if !user.IsActive {
+		user.IsActive = true
+	}
+
 	return service.db.Create(user).Error
+}
+
+// ListUsers returns paginated users and total count
+func ListUsers(page, limit int) ([]User, int64, error) {
+	service := NewUserService()
+	var users []User
+	var total int64
+
+	query := service.db.Model(&User{})
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	if page > 0 && limit > 0 {
+		offset := (page - 1) * limit
+		query = query.Limit(limit).Offset(offset)
+	}
+
+	err := query.Order("created_at DESC").Find(&users).Error
+	return users, total, err
 }
 
 // GetUserByEmail finds user by email
@@ -68,5 +92,33 @@ func UpdateUser(user *User) error {
 // DeleteUser deletes user by ID
 func DeleteUser(id string) error {
 	service := NewUserService()
-	return service.db.Delete(&User{}, "id = ?", id).Error
+	result := service.db.Delete(&User{}, "id = ?", id)
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return result.Error
+}
+
+// DisableUser sets is_active to false for the given user ID
+func DisableUser(id string) error {
+	service := NewUserService()
+	result := service.db.Model(&User{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"is_active": false,
+	})
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return result.Error
+}
+
+// EnableUser sets is_active to true for the given user ID
+func EnableUser(id string) error {
+	service := NewUserService()
+	result := service.db.Model(&User{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"is_active": true,
+	})
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return result.Error
 }
