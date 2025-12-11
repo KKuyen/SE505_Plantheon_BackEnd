@@ -24,7 +24,16 @@ func GetNewsHandler(c *gin.Context) {
 		size = &parsed
 	}
 
-	news, err := GetAllNews(size)
+	// Check if user is admin to determine if we should include draft posts
+	userInterface, exists := c.Get("user")
+	includeAllStatuses := false
+	if exists {
+		if user, ok := userInterface.(*users.User); ok && user.IsAdmin() {
+			includeAllStatuses = true
+		}
+	}
+
+	news, err := GetAllNews(size, includeAllStatuses)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to get news",

@@ -2,6 +2,7 @@ package users
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 
 	"plantheon-backend/common"
@@ -131,6 +132,14 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	// Check if account is active
+	if !user.IsActive {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "Tài khoản đã bị vô hiệu hóa",
+		})
+		return
+	}
+
 	// Generate JWT token
 	token, err := common.GenerateJWT(user.ID, user.Email, string(user.Role))
 	if err != nil {
@@ -214,6 +223,238 @@ func UpdateProfile(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Profile updated successfully",
+		"data":    user.ToUserResponse(),
+	})
+}
+
+// GetAllUsers handles admin retrieval of all users with pagination
+func GetAllUsers(c *gin.Context) {
+	pageStr := c.DefaultQuery("page", "1")
+	limitStr := c.DefaultQuery("limit", "20")
+
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid page parameter",
+		})
+		return
+	}
+
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit < 1 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid limit parameter",
+		})
+		return
+	}
+
+	users, total, err := ListUsers(page, limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to fetch users",
+		})
+		return
+	}
+
+	responses := make([]UserResponse, 0, len(users))
+	for _, user := range users {
+		responses = append(responses, user.ToUserResponse())
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": responses,
+		"pagination": gin.H{
+			"page":  page,
+			"limit": limit,
+			"total": total,
+		},
+	})
+}
+
+// GetUserByIDHandler handles admin retrieval of a single user by ID
+func GetUserByIDHandler(c *gin.Context) {
+	userID := c.Param("id")
+	user, err := GetUserByID(userID)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "User not found",
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to fetch user",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": user.ToUserResponse(),
+	})
+}
+
+// DisableUserHandler disables a user by ID (admin only)
+func DisableUserHandler(c *gin.Context) {
+	userID := c.Param("id")
+
+	if _, err := GetUserByID(userID); err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "User not found",
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to fetch user",
+		})
+		return
+	}
+
+	if err := DisableUser(userID); err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "User not found",
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to disable user",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "User has been disabled successfully",
+	})
+}
+
+// EnableUserHandler enables a user by ID (admin only)
+func EnableUserHandler(c *gin.Context) {
+	userID := c.Param("id")
+
+	if _, err := GetUserByID(userID); err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "User not found",
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to fetch user",
+		})
+		return
+	}
+
+	if err := EnableUser(userID); err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "User not found",
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to enable user",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "User has been enabled successfully",
+	})
+}
+
+// UpdateUserByAdminHandler updates user info (admin only)
+func UpdateUserByAdminHandler(c *gin.Context) {
+	userID := c.Param("id")
+	var req UpdateUserAdminRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request format",
+		})
+		return
+	}
+
+	user, err := GetUserByID(userID)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "User not found",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to fetch user",
+		})
+		return
+	}
+
+	// Email update
+	if strings.TrimSpace(req.Email) != "" {
+		if err := ValidateEmail(req.Email); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		// Check duplicate email (excluding current user)
+		if existing, err := GetUserByEmail(req.Email); err == nil && existing.ID != userID {
+			c.JSON(http.StatusConflict, gin.H{
+				"error": "Email already exists",
+			})
+			return
+		}
+		user.Email = strings.TrimSpace(req.Email)
+	}
+
+	// Username update
+	if strings.TrimSpace(req.Username) != "" {
+		if err := ValidateUsername(req.Username); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		if existing, err := GetUserByUsername(req.Username); err == nil && existing.ID != userID {
+			c.JSON(http.StatusConflict, gin.H{
+				"error": "Username already exists",
+			})
+			return
+		}
+		user.Username = strings.TrimSpace(req.Username)
+	}
+
+	// Full name update
+	if strings.TrimSpace(req.FullName) != "" {
+		fullName := strings.TrimSpace(req.FullName)
+		if len(fullName) > 100 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Full name must be less than 100 characters",
+			})
+			return
+		}
+		user.FullName = fullName
+	}
+
+	// Avatar update
+	if strings.TrimSpace(req.Avatar) != "" {
+		user.Avatar = strings.TrimSpace(req.Avatar)
+	}
+
+	if err := UpdateUser(user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to update user",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "User updated successfully",
 		"data":    user.ToUserResponse(),
 	})
 }

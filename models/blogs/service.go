@@ -49,11 +49,17 @@ func UpdateNews(blog *Blog) error {
 	return nil
 }
 
-func GetAllNews(size *int) (NewsListResponse, error) {
+func GetAllNews(size *int, includeAllStatuses bool) (NewsListResponse, error) {
 	service := NewBlogsService()
 	var blogs []Blog
-	// Only fetch published blogs that are NOT linked to any sub guide stage
-	query := service.db.Where("status = ? AND sub_guide_stages_id IS NULL", "published").Order("created_at DESC")
+	// Fetch blogs that are NOT linked to any sub guide stage
+	// If includeAllStatuses is true (admin), get all statuses; otherwise only published
+	var query *gorm.DB
+	if includeAllStatuses {
+		query = service.db.Where("sub_guide_stages_id IS NULL").Order("created_at DESC")
+	} else {
+		query = service.db.Where("status = ? AND sub_guide_stages_id IS NULL", "published").Order("created_at DESC")
+	}
 	if size != nil {
 		query = query.Limit(*size)
 	}

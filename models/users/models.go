@@ -23,6 +23,7 @@ type User struct {
 	FullName  string    `json:"full_name"`
 	Avatar    string    `json:"avatar"`
 	Role      UserRole  `json:"role" gorm:"type:varchar(20);default:'user';not null"`
+	IsActive  bool      `json:"is_active" gorm:"default:true;not null"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

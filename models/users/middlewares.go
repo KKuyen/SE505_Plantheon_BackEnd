@@ -60,6 +60,15 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		// Block disabled accounts
+		if !user.IsActive {
+			c.JSON(http.StatusForbidden, gin.H{
+				"error": "Tài khoản đã bị vô hiệu hóa",
+			})
+			c.Abort()
+			return
+		}
+
 		// Set user in context
 		c.Set("user", user)
 		c.Set("user_id", user.ID)
@@ -124,6 +133,15 @@ func RequireAdmin() gin.HandlerFunc {
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "User not found",
+			})
+			c.Abort()
+			return
+		}
+
+		// Block disabled accounts
+		if !user.IsActive {
+			c.JSON(http.StatusForbidden, gin.H{
+				"error": "Tài khoản đã bị vô hiệu hóa",
 			})
 			c.Abort()
 			return
@@ -207,6 +225,15 @@ func RequireRole(role UserRole) gin.HandlerFunc {
 			return
 		}
 
+		// Block disabled accounts
+		if !user.IsActive {
+			c.JSON(http.StatusForbidden, gin.H{
+				"error": "Tài khoản đã bị vô hiệu hóa",
+			})
+			c.Abort()
+			return
+		}
+
 		// Double check user role from database
 		if user.Role != role {
 			c.JSON(http.StatusForbidden, gin.H{
@@ -230,7 +257,7 @@ func GetCurrentUser(c *gin.Context) (*User, bool) {
 	if !exists {
 		return nil, false
 	}
-	
+
 	userModel, ok := user.(*User)
 	return userModel, ok
 }
@@ -241,11 +268,11 @@ func GetCurrentUserRole(c *gin.Context) (UserRole, bool) {
 	if !exists {
 		return "", false
 	}
-	
+
 	roleString, ok := role.(string)
 	if !ok {
 		return "", false
 	}
-	
+
 	return UserRole(roleString), true
 }

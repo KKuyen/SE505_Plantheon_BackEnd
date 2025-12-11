@@ -10,6 +10,7 @@ type UserResponse struct {
 	FullName  string    `json:"full_name"`
 	Avatar    string    `json:"avatar"`
 	Role      UserRole  `json:"role"`
+	IsActive  bool      `json:"is_active"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -42,6 +43,14 @@ type UpdateUserRequest struct {
 	Avatar   string `json:"avatar"`
 }
 
+// UpdateUserAdminRequest represents admin update request for a user
+type UpdateUserAdminRequest struct {
+	Email    string `json:"email"`
+	Username string `json:"username"`
+	FullName string `json:"full_name"`
+	Avatar   string `json:"avatar"`
+}
+
 // ToUserResponse converts User model to UserResponse
 func (u *User) ToUserResponse() UserResponse {
 	return UserResponse{
@@ -51,6 +60,7 @@ func (u *User) ToUserResponse() UserResponse {
 		FullName:  u.FullName,
 		Avatar:    u.Avatar,
 		Role:      u.Role,
+		IsActive:  u.IsActive,
 		CreatedAt: u.CreatedAt,
 		UpdatedAt: u.UpdatedAt,
 	}
