@@ -187,6 +187,7 @@ func main() {
 		{
 			// Public routes - anyone can view
 			diseaseActivityKeywordRoutes.GET("/disease/:disease_id", disease_activity_keywords.GetActivityKeywordsForDiseaseHandler)
+			diseaseActivityKeywordRoutes.GET("/keyword/:keyword_id", disease_activity_keywords.GetDiseasesForKeywordHandler)
 		}
 
 		// Admin-only Disease-Activity Keywords routes

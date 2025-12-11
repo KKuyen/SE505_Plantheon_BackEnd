@@ -154,3 +154,14 @@ func DeleteDisease(ClassName string) error {
 	service := NewDiseaseService()
 	return service.db.Delete(&Disease{}, "class_name = ?", ClassName).Error
 }
+
+// GetDiseasesByIDs gets diseases by a list of IDs
+func GetDiseasesByIDs(ids []string) ([]Disease, error) {
+	service := NewDiseaseService()
+	var diseases []Disease
+	if len(ids) == 0 {
+		return diseases, nil
+	}
+	err := service.db.Where("id IN ?", ids).Find(&diseases).Error
+	return diseases, err
+}

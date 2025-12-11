@@ -95,6 +95,43 @@ func GetActivityKeywordsForDiseaseHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": responses})
 }
 
+// GetDiseasesForKeywordHandler gets all diseases that have a specific activity keyword
+func GetDiseasesForKeywordHandler(c *gin.Context) {
+	keywordID := c.Param("keyword_id")
+	
+	// Check if keyword exists
+	_, err := activity_keywords.GetActivityKeywordByID(keywordID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Activity keyword not found"})
+		return
+	}
+	
+	diseaseIDs, err := GetDiseasesByActivityKeywordID(keywordID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get diseases"})
+		return
+	}
+	
+	if len(diseaseIDs) == 0 {
+		c.JSON(http.StatusOK, gin.H{"data": []interface{}{}})
+		return
+	}
+	
+	// Fetch full disease details
+	diseaseList, err := diseases.GetDiseasesByIDs(diseaseIDs)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get disease details"})
+		return
+	}
+	
+	responses := make([]diseases.DiseaseResponse, len(diseaseList))
+	for i, d := range diseaseList {
+		responses[i] = d.ToDiseaseResponse()
+	}
+	
+	c.JSON(http.StatusOK, gin.H{"data": responses})
+}
+
 // SetActivityKeywordsForDiseaseHandler sets all activity keywords for a disease (replaces existing)
 func SetActivityKeywordsForDiseaseHandler(c *gin.Context) {
 	diseaseID := c.Param("disease_id")
