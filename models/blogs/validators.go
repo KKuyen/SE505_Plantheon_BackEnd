@@ -56,6 +56,15 @@ func ValidateCreateNewsRequest(req *CreateNewsRequest) error {
 		req.Status = "draft"
 	}
 
+	// Validate sub_guide_stages_id if provided
+	if req.SubGuideStagesID != nil && *req.SubGuideStagesID != "" {
+		id := strings.TrimSpace(*req.SubGuideStagesID)
+		if _, err := uuid.Parse(id); err != nil {
+			return errors.New("sub_guide_stages_id must be a valid UUID")
+		}
+		req.SubGuideStagesID = &id
+	}
+
 	// Validate cover image URL (optional)
 	if req.CoverImageURL != nil {
 		url := strings.TrimSpace(*req.CoverImageURL)

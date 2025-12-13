@@ -5,12 +5,13 @@ import (
 )
 
 type CreateNewsRequest struct {
-	Title         string  `json:"title" binding:"required"`
-	Description   *string `json:"description"`
-	Content       string  `json:"content" binding:"required"`
-	CoverImageURL *string `json:"cover_image_url"`
-	BlogTagID     *string `json:"blog_tag_id"`
-	Status        string  `json:"status"` // draft or published
+	Title            string  `json:"title" binding:"required"`
+	Description      *string `json:"description"`
+	Content          string  `json:"content" binding:"required"`
+	CoverImageURL    *string `json:"cover_image_url"`
+	SubGuideStagesID *string `json:"sub_guide_stages_id"`
+	BlogTagID        *string `json:"blog_tag_id"`
+	Status           string  `json:"status"` // draft or published
 }
 
 type NewsResponse struct {
@@ -54,6 +55,7 @@ type NewsDetailResponse struct {
 // BlogSummaryResponse is a lightweight blog representation
 // used for embedding blogs under sub guide stages.
 type BlogSummaryResponse struct {
+	ID            string  `json:"id"`
 	Title         string  `json:"title"`
 	Description   *string `json:"description,omitempty"`
 	Content       string  `json:"content"`
@@ -65,6 +67,7 @@ type BlogSummaryResponse struct {
 // ToBlogSummaryResponse converts Blog to BlogSummaryResponse.
 func (b *Blog) ToBlogSummaryResponse() BlogSummaryResponse {
 	return BlogSummaryResponse{
+		ID:            b.ID,
 		Title:         b.Title,
 		Description:   b.Description,
 		Content:       b.Content,
