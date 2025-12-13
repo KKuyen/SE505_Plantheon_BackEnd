@@ -10,6 +10,7 @@ type Comments struct {
 	Content   string    `json:"content" gorm:"type:text;not null"`
 	LikeNum   int64     `json:"like_number" gorm:"default:0"`
 	Status    string    `json:"status" gorm:"type:varchar"` // REPORTED AVAILABLE UNAVAILABLE
+	IsDeleted bool      `json:"is_deleted" gorm:"default:false;index"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

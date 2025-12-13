@@ -119,7 +119,7 @@ func UnlikeComment(commentID string, userID string) error {
 func GetCommentsByPostID(postID string, viewerID string) ([]CommentResponse, error) {
 	service := NewCommentService()
 	var comments []Comments
-	if err := service.db.Where("post_id = ?", postID).Order("created_at DESC").Find(&comments).Error; err != nil {
+	if err := service.db.Where("post_id = ? AND is_deleted = ?", postID, false).Order("created_at DESC").Find(&comments).Error; err != nil {
 		return nil, err
 	}
 
@@ -201,4 +201,19 @@ func ValidateParentComment(tx *gorm.DB, parentID string, postID string) error {
 		return errors.New("parent comment does not belong to the same post")
 	}
 	return nil
+}
+// UpdateCommentIsDeleted updates the is_deleted status of a comment (admin only)
+func UpdateCommentIsDeleted(commentID string, isDeleted bool) error {
+	service := NewCommentService()
+	return service.db.Model(&Comments{}).Where("id = ?", commentID).Update("is_deleted", isDeleted).Error
+}
+
+// GetCommentByIDAdmin gets a comment by ID without IsDeleted filter (for admin)
+func GetCommentByIDAdmin(id string) (*Comments, error) {
+	service := NewCommentService()
+	var comment Comments
+	if err := service.db.Where("id = ?", id).First(&comment).Error; err != nil {
+		return nil, err
+	}
+	return &comment, nil
 }

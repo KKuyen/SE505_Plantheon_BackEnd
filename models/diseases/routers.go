@@ -419,6 +419,7 @@ func ImportDiseasesFromExcelHandler(c *gin.Context) {
 	// Process rows
 	var errors []ExcelImportError
 	var createdDiseases []DiseaseResponse
+	var updatedDiseases []DiseaseResponse
 
 	// Skip header row (index 0), start from index 1
 	for i := 1; i < len(rows); i++ {
@@ -470,17 +471,31 @@ func ImportDiseasesFromExcelHandler(c *gin.Context) {
 			continue
 		}
 
-		// Check if disease already exists
+		// Check if disease already exists by className
 		existingDisease, err := GetDiseaseByClassName(excelRow.ClassName)
 		if err == nil && existingDisease != nil {
-			errors = append(errors, ExcelImportError{
-				Row:   rowNumber,
-				Error: "Disease with this class name already exists",
-			})
+			// Update existing disease with new data
+			existingDisease.Name = excelRow.Name
+			existingDisease.Type = excelRow.Type
+			existingDisease.Description = excelRow.Description
+			existingDisease.Solution = excelRow.Solution
+			existingDisease.ImageLink = pq.StringArray(excelRow.ImageLink)
+			existingDisease.PlantName = excelRow.PlantName
+
+			if err := UpdateDisease(existingDisease); err != nil {
+				errors = append(errors, ExcelImportError{
+					Row:   rowNumber,
+					Error: fmt.Sprintf("Failed to update disease: %v", err),
+				})
+				continue
+			}
+
+			// Add to updated list
+			updatedDiseases = append(updatedDiseases, existingDisease.ToDiseaseResponse())
 			continue
 		}
 
-		// Create disease
+		// Create new disease
 		disease := &Disease{
 			Name:        excelRow.Name,
 			ClassName:   excelRow.ClassName,
@@ -499,17 +514,19 @@ func ImportDiseasesFromExcelHandler(c *gin.Context) {
 			continue
 		}
 
-		// Add to success list
+		// Add to created list
 		createdDiseases = append(createdDiseases, disease.ToDiseaseResponse())
 	}
 
 	// Prepare response
 	response := ExcelImportResponse{
 		TotalRows:       len(rows) - 1, // Exclude header
-		SuccessCount:    len(createdDiseases),
+		CreatedCount:    len(createdDiseases),
+		UpdatedCount:    len(updatedDiseases),
 		ErrorCount:      len(errors),
 		Errors:          errors,
 		CreatedDiseases: createdDiseases,
+		UpdatedDiseases: updatedDiseases,
 	}
 
 	c.JSON(http.StatusOK, gin.H{

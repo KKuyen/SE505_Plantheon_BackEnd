@@ -236,3 +236,78 @@ func UnlikeCommentHandler(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Comment unliked"})
 }
+
+// ============ ADMIN HANDLERS ============
+
+// AdminUpdateCommentIsDeletedHandler updates the is_deleted status of a comment (admin only)
+func AdminUpdateCommentIsDeletedHandler(c *gin.Context) {
+	commentID := c.Param("commentId")
+	if commentID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Comment ID is required"})
+		return
+	}
+
+	var req struct {
+		IsDeleted bool `json:"is_deleted"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+		return
+	}
+
+	// Check if comment exists
+	comment, err := GetCommentByIDAdmin(commentID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Comment not found"})
+		return
+	}
+
+	if err := UpdateCommentIsDeleted(commentID, req.IsDeleted); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update comment"})
+		return
+	}
+
+	action := "restored"
+	if req.IsDeleted {
+		action = "deleted"
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Comment " + action + " successfully",
+		"data": gin.H{
+			"id":         comment.ID,
+			"post_id":    comment.PostID,
+			"is_deleted": req.IsDeleted,
+		},
+	})
+}
+
+// AdminGetCommentByIDHandler gets a comment by ID without IsDeleted filter (admin only)
+func AdminGetCommentByIDHandler(c *gin.Context) {
+	commentID := c.Param("commentId")
+	if commentID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Comment ID is required"})
+		return
+	}
+
+	comment, err := GetCommentByIDAdmin(commentID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Comment not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": gin.H{
+			"id":         comment.ID,
+			"post_id":    comment.PostID,
+			"user_id":    comment.UserID,
+			"parent_id":  comment.ParentID,
+			"content":    comment.Content,
+			"like_num":   comment.LikeNum,
+			"status":     comment.Status,
+			"is_deleted": comment.IsDeleted,
+			"created_at": comment.CreatedAt,
+			"updated_at": comment.UpdatedAt,
+		},
+	})
+}

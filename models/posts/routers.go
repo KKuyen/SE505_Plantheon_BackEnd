@@ -493,3 +493,80 @@ func GetMyPostsHandler(c *gin.Context) {
 		"data": posts,
 	})
 }
+
+// ============ ADMIN HANDLERS ============
+
+// AdminUpdatePostIsDeletedHandler updates the is_deleted status of a post (admin only)
+func AdminUpdatePostIsDeletedHandler(c *gin.Context) {
+	postID := c.Param("id")
+	if err := ValidateIdParam(postID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var req struct {
+		IsDeleted bool `json:"is_deleted"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+		return
+	}
+
+	// Check if post exists
+	post, err := GetPostByIDAdmin(postID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
+		return
+	}
+
+	if err := UpdatePostIsDeleted(postID, req.IsDeleted); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update post"})
+		return
+	}
+
+	action := "restored"
+	if req.IsDeleted {
+		action = "deleted"
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+"message": "Post " + action + " successfully",
+"data": gin.H{
+"id":         post.ID,
+"is_deleted": req.IsDeleted,
+},
+})
+}
+
+// AdminGetPostByIDHandler gets a post by ID without IsDeleted filter (admin only)
+func AdminGetPostByIDHandler(c *gin.Context) {
+	postID := c.Param("id")
+	if err := ValidateIdParam(postID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	post, err := GetPostByIDAdmin(postID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+"data": gin.H{
+"id":            post.ID,
+"user_id":       post.UserID,
+"content":       post.Content,
+"image_link":    post.ImageLink,
+"disease_link":  post.DiseaseLink,
+"tags":          post.Tags,
+"like_num":      post.LikeNum,
+"comment_num":   post.CommentNum,
+"share_num":     post.ShareNum,
+"status":        post.Status,
+"is_deleted":    post.IsDeleted,
+"created_at":    post.CreatedAt,
+"updated_at":    post.UpdatedAt,
+},
+})
+}

@@ -54,11 +54,13 @@ type ExcelDiseaseRow struct {
 
 // ExcelImportResponse represents response for Excel import
 type ExcelImportResponse struct {
-	TotalRows     int                `json:"total_rows"`
-	SuccessCount  int                `json:"success_count"`
-	ErrorCount    int                `json:"error_count"`
-	Errors        []ExcelImportError `json:"errors"`
-	CreatedDiseases []DiseaseResponse `json:"created_diseases"`
+	TotalRows        int                `json:"total_rows"`
+	CreatedCount     int                `json:"created_count"`
+	UpdatedCount     int                `json:"updated_count"`
+	ErrorCount       int                `json:"error_count"`
+	Errors           []ExcelImportError `json:"errors"`
+	CreatedDiseases  []DiseaseResponse  `json:"created_diseases"`
+	UpdatedDiseases  []DiseaseResponse  `json:"updated_diseases"`
 }
 
 // ExcelImportError represents error for a specific row

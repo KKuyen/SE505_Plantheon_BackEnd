@@ -2,6 +2,7 @@ package activity_keywords
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -178,4 +179,112 @@ func SearchActivityKeywordsHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": responses})
+}
+
+// QueryActivityKeywordsHandler handles querying activity keywords by name and/or type with pagination
+// Query params: name (optional), type (optional), page (default 1), limit (default 10, max 100)
+func QueryActivityKeywordsHandler(c *gin.Context) {
+	// Parse query parameters
+	name := c.Query("name")
+	keywordType := c.Query("type")
+
+	// Parse page parameter
+	page := 1
+	if pageStr := c.Query("page"); pageStr != "" {
+		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+			page = p
+		}
+	}
+
+	// Parse limit parameter
+	limit := 10
+	if limitStr := c.Query("limit"); limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
+			limit = l
+			if limit > 100 {
+				limit = 100 // Max limit
+			}
+		}
+	}
+
+	activityKeywords, total, err := QueryActivityKeywords(name, keywordType, page, limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query activity keywords"})
+		return
+	}
+
+	responses := make([]ActivityKeywordResponse, len(activityKeywords))
+	for i, ak := range activityKeywords {
+		responses[i] = ak.ToActivityKeywordResponse()
+	}
+
+	// Calculate total pages
+	totalPages := int(total) / limit
+	if int(total)%limit > 0 {
+		totalPages++
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": responses,
+		"pagination": gin.H{
+			"page":        page,
+			"limit":       limit,
+			"total":       total,
+			"total_pages": totalPages,
+		},
+		"filters": gin.H{
+			"name": name,
+			"type": keywordType,
+		},
+	})
+}
+
+// GetActivityKeywordsPaginatedHandler handles getting activity keywords with pagination
+// Query params: page (default 1), limit (default 10, max 100)
+func GetActivityKeywordsPaginatedHandler(c *gin.Context) {
+	// Parse page parameter
+	page := 1
+	if pageStr := c.Query("page"); pageStr != "" {
+		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+			page = p
+		}
+	}
+
+	// Parse limit parameter
+	limit := 10
+	if limitStr := c.Query("limit"); limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
+			limit = l
+			if limit > 100 {
+				limit = 100 // Max limit
+			}
+		}
+	}
+
+	activityKeywords, total, err := GetActivityKeywordsPaginated(page, limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get activity keywords"})
+		return
+	}
+
+	responses := make([]ActivityKeywordResponse, len(activityKeywords))
+	for i, ak := range activityKeywords {
+		responses[i] = ak.ToActivityKeywordResponse()
+	}
+
+	// Calculate total pages
+	totalPages := int(total) / limit
+	if int(total)%limit > 0 {
+		totalPages++
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": responses,
+		"pagination": gin.H{
+			"page":        page,
+			"limit":       limit,
+			"total":       total,
+			"total_pages": totalPages,
+		},
+	})
 }

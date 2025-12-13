@@ -10,6 +10,7 @@ import (
 	"plantheon-backend/models/blog_tags"
 	"plantheon-backend/models/blogs"
 	"plantheon-backend/models/comments"
+	"plantheon-backend/models/complaints"
 	"plantheon-backend/models/disease_activity_keywords"
 	"plantheon-backend/models/diseases"
 	"plantheon-backend/models/guide_stages"
@@ -52,6 +53,7 @@ func main() {
 		&guide_stages.GuideStage{},
 		&sub_guide_stages.SubGuideStage{},
 		&noti.Notification{},
+		&complaints.Complaint{},
 	)
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)
@@ -179,10 +181,14 @@ func main() {
 		activityKeywordRoutes := api.Group("/activity-keywords")
 		{
 			// Public routes (anyone can view)
+			// IMPORTANT: Specific routes must be registered BEFORE parameterized routes like /:id
 			activityKeywordRoutes.GET("", activity_keywords.GetAllActivityKeywordsHandler)
-			activityKeywordRoutes.GET("/:id", activity_keywords.GetActivityKeywordByIDHandler)
+			activityKeywordRoutes.GET("/paginated", activity_keywords.GetActivityKeywordsPaginatedHandler)
+			activityKeywordRoutes.GET("/query", activity_keywords.QueryActivityKeywordsHandler)
 			activityKeywordRoutes.GET("/search", activity_keywords.SearchActivityKeywordsHandler)
 			activityKeywordRoutes.GET("/disease/:disease_id", disease_activity_keywords.GetActivityKeywordsForDiseaseHandler)
+			// Parameterized route MUST be last
+			activityKeywordRoutes.GET("/:id", activity_keywords.GetActivityKeywordByIDHandler)
 		}
 
 		// Admin-only Activity Keywords routes
@@ -331,6 +337,42 @@ func main() {
 			notificationRoutes.GET("/:id/seen", noti.MarkNotificationAsSeenHandler)
 			notificationRoutes.DELETE("/:id", noti.DeleteNotificationHandler)
 			notificationRoutes.DELETE("", noti.DeleteAllNotificationsHandler)
+		}
+
+		// Complaint routes (user can create and manage their own complaints)
+		complaintRoutes := api.Group("/complaints")
+		complaintRoutes.Use(users.AuthMiddleware())
+		{
+			complaintRoutes.POST("", complaints.CreateComplaintHandler)
+			complaintRoutes.GET("/my", complaints.GetMyComplaintsHandler)
+			complaintRoutes.GET("/:id", complaints.GetComplaintByIDHandler)
+			complaintRoutes.DELETE("/:id", complaints.DeleteComplaintHandler)
+		}
+
+		// Admin-only complaint routes
+		adminComplaintRoutes := api.Group("/complaints")
+		adminComplaintRoutes.Use(users.RequireAdmin())
+		{
+			adminComplaintRoutes.GET("", complaints.GetAllComplaintsHandler)
+			adminComplaintRoutes.GET("/count", complaints.GetComplaintsCountHandler)
+			adminComplaintRoutes.GET("/target/:target_id", complaints.GetComplaintsByTargetHandler)
+			adminComplaintRoutes.PUT("/:id/status", complaints.UpdateComplaintStatusHandler)
+			adminComplaintRoutes.DELETE("/admin/:id", complaints.AdminDeleteComplaintHandler)
+		}
+
+		// Admin-only post and comment moderation routes
+		adminPostRoutes := api.Group("/admin/posts")
+		adminPostRoutes.Use(users.RequireAdmin())
+		{
+			adminPostRoutes.GET("/:id", posts.AdminGetPostByIDHandler)
+			adminPostRoutes.PUT("/:id/is-deleted", posts.AdminUpdatePostIsDeletedHandler)
+		}
+
+		adminCommentRoutes := api.Group("/admin/comments")
+		adminCommentRoutes.Use(users.RequireAdmin())
+		{
+			adminCommentRoutes.GET("/:commentId", comments.AdminGetCommentByIDHandler)
+			adminCommentRoutes.PUT("/:commentId/is-deleted", comments.AdminUpdateCommentIsDeletedHandler)
 		}
 	}
 

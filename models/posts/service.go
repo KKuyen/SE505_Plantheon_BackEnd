@@ -40,8 +40,8 @@ func GetAllPosts(viewerID string) (PostListResponse, error) {
 	service := NewPostsService()
 	var posts []Post
 	
-	// Exclude viewer's own posts if viewerID is provided
-	query := service.db
+	// Exclude deleted posts and viewer's own posts if viewerID is provided
+	query := service.db.Where("is_deleted = ?", false)
 	if viewerID != "" {
 		query = query.Where("user_id != ?", viewerID)
 	}
@@ -140,7 +140,7 @@ func GetAllPosts(viewerID string) (PostListResponse, error) {
 func GetPostByID(id string, viewerID string) (*PostDetailResponse, error) {
 	service := NewPostsService()
 	var post Post
-	if err := service.db.Where("id = ?", id).First(&post).Error; err != nil {
+	if err := service.db.Where("id = ? AND is_deleted = ?", id, false).First(&post).Error; err != nil {
 		return nil, err
 	}
 
@@ -495,4 +495,20 @@ func GetPublicPostsByUserID(userID string, viewerID string) (PostListResponse, e
 		Posts: postResponses,
 		Total: len(postResponses),
 	}, nil
+}
+
+// UpdatePostIsDeleted updates the is_deleted status of a post (admin only)
+func UpdatePostIsDeleted(postID string, isDeleted bool) error {
+	service := NewPostsService()
+	return service.db.Model(&Post{}).Where("id = ?", postID).Update("is_deleted", isDeleted).Error
+}
+
+// GetPostByIDAdmin gets a post by ID without IsDeleted filter (for admin)
+func GetPostByIDAdmin(id string) (*Post, error) {
+	service := NewPostsService()
+	var post Post
+	if err := service.db.Where("id = ?", id).First(&post).Error; err != nil {
+		return nil, err
+	}
+	return &post, nil
 }

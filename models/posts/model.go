@@ -20,6 +20,7 @@ type Post struct {
 	ShareNum      int            `json:"share_number" gorm:"default:0"`
 	Tags          pq.StringArray `json:"tags" gorm:"type:text[]"`
 	Status        string         `json:"status" gorm:"type:varchar"` // REPORTED AVAILABLE UNAVAILABLE
+	IsDeleted     bool           `json:"is_deleted" gorm:"default:false;index"`
 	CreatedAt     time.Time      `json:"created_at"`
 	UpdatedAt     time.Time      `json:"updated_at"`
 }
