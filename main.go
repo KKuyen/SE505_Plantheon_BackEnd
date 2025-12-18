@@ -344,6 +344,7 @@ func main() {
 		complaintRoutes.Use(users.AuthMiddleware())
 		{
 			complaintRoutes.POST("", complaints.CreateComplaintHandler)
+			complaintRoutes.POST("/scan", complaints.CreateScanComplaintHandler)
 			complaintRoutes.GET("/my", complaints.GetMyComplaintsHandler)
 			complaintRoutes.GET("/:id", complaints.GetComplaintByIDHandler)
 			complaintRoutes.DELETE("/:id", complaints.DeleteComplaintHandler)
@@ -354,10 +355,29 @@ func main() {
 		adminComplaintRoutes.Use(users.RequireAdmin())
 		{
 			adminComplaintRoutes.GET("", complaints.GetAllComplaintsHandler)
+			adminComplaintRoutes.GET("/unverified", complaints.GetUnverifiedScanComplaintsHandler)
 			adminComplaintRoutes.GET("/count", complaints.GetComplaintsCountHandler)
 			adminComplaintRoutes.GET("/target/:target_id", complaints.GetComplaintsByTargetHandler)
+			adminComplaintRoutes.POST("/:id/verify", complaints.VerifyComplaintHandler)
 			adminComplaintRoutes.PUT("/:id/status", complaints.UpdateComplaintStatusHandler)
 			adminComplaintRoutes.DELETE("/admin/:id", complaints.AdminDeleteComplaintHandler)
+		}
+
+		// ML export routes (admin only)
+		mlRoutes := api.Group("/ml")
+		mlRoutes.Use(users.RequireAdmin())
+		{
+			mlRoutes.GET("/export-training-data", complaints.ExportTrainingDataHandler)
+		}
+
+		// Analytics routes (admin only)
+		analyticsRoutes := api.Group("/analytics")
+		analyticsRoutes.Use(users.RequireAdmin())
+		{
+			analyticsRoutes.GET("/problematic-diseases", complaints.GetProblematicDiseasesHandler)
+			analyticsRoutes.GET("/trends", complaints.GetComplaintTrendsHandler)
+			analyticsRoutes.GET("/overall-stats", complaints.GetOverallStatsHandler)
+			analyticsRoutes.GET("/top-contributors", complaints.GetTopContributorsHandler)
 		}
 
 		// Admin-only post and comment moderation routes

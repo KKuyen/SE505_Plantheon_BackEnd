@@ -66,6 +66,59 @@ func CreateComplaintHandler(c *gin.Context) {
 	})
 }
 
+// CreateScanComplaintHandler handles creating a new complaint about scan results
+func CreateScanComplaintHandler(c *gin.Context) {
+	// Get user from context
+	userInterface, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found in context"})
+		return
+	}
+
+	user, ok := userInterface.(*users.User)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user format"})
+		return
+	}
+
+	var req CreateScanComplaintRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+		return
+	}
+
+	if err := ValidateCreateScanComplaintRequest(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// No duplicate check for scan complaints - users can submit multiple complaints for the same disease
+
+	complaint := &Complaint{
+		UserID:                 user.ID,
+		TargetID:               req.PredictedDiseaseID, // Use predicted disease as target
+		TargetType:             ComplaintTypeScan,
+		Category:               ComplaintCategory(req.Category),
+		Content:                req.Content,
+		ImageURL:               req.ImageURL,
+		Status:                 ComplaintStatusPending,
+		PredictedDiseaseID:     &req.PredictedDiseaseID,
+		UserSuggestedDiseaseID: req.UserSuggestedDiseaseID,
+		ConfidenceScore:        &req.ConfidenceScore,
+		IsVerified:             false,
+	}
+
+	if err := CreateComplaint(complaint); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create complaint"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Scan complaint submitted successfully",
+		"data":    complaint.ToComplaintResponse(),
+	})
+}
+
 // GetMyComplaintsHandler gets all complaints made by the current user
 func GetMyComplaintsHandler(c *gin.Context) {
 	userInterface, exists := c.Get("user")
@@ -233,8 +286,15 @@ func GetAllComplaintsHandler(c *gin.Context) {
 func GetComplaintsCountHandler(c *gin.Context) {
 	status := c.Query("status")
 	targetType := c.Query("target_type")
+	isVerifiedStr := c.Query("is_verified")
+	
+	var isVerified *bool
+	if isVerifiedStr != "" {
+		val := isVerifiedStr == "true"
+		isVerified = &val
+	}
 
-	count, err := GetComplaintsCount(status, targetType)
+	count, err := GetComplaintsCount(status, targetType, isVerified)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get complaints count"})
 		return
@@ -245,6 +305,7 @@ func GetComplaintsCountHandler(c *gin.Context) {
 			"count":       count,
 			"status":      status,
 			"target_type": targetType,
+			"is_verified": isVerifiedStr,
 		},
 	})
 }
@@ -323,7 +384,7 @@ func AdminDeleteComplaintHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Complaint deleted successfully"})
 }
 
-// GetComplaintsByTargetHandler gets all complaints for a specific post or comment (admin only)
+// GetComplaintsByTargetHandler gets all complaints for a specific post, comment, or scan (admin only)
 func GetComplaintsByTargetHandler(c *gin.Context) {
 	targetID := c.Param("target_id")
 	targetType := c.Query("target_type")
@@ -333,8 +394,8 @@ func GetComplaintsByTargetHandler(c *gin.Context) {
 		return
 	}
 
-	if targetType != string(ComplaintTypePost) && targetType != string(ComplaintTypeComment) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "target_type must be POST or COMMENT"})
+	if targetType != string(ComplaintTypePost) && targetType != string(ComplaintTypeComment) && targetType != string(ComplaintTypeScan) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "target_type must be POST, COMMENT, or SCAN"})
 		return
 	}
 
@@ -350,4 +411,181 @@ func GetComplaintsByTargetHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": responses})
+}
+
+// ============ SCAN COMPLAINT VERIFICATION HANDLERS ============
+
+// VerifyComplaintHandler verifies a scan complaint and sets ground truth (admin only)
+func VerifyComplaintHandler(c *gin.Context) {
+	userInterface, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found in context"})
+		return
+	}
+
+	user, ok := userInterface.(*users.User)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user format"})
+		return
+	}
+
+	id := c.Param("id")
+	if err := ValidateUUID(id); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var req VerifyComplaintRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+		return
+	}
+
+	if err := ValidateVerifyComplaintRequest(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Check if complaint exists and is a scan complaint
+	complaint, err := GetComplaintByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Complaint not found"})
+		return
+	}
+
+	if complaint.TargetType != ComplaintTypeScan {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Only scan complaints can be verified"})
+		return
+	}
+
+	// Verify the complaint
+	if err := VerifyComplaint(id, req.VerifiedDiseaseID, req.IsVerified, req.AdminNotes, user.ID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify complaint"})
+		return
+	}
+
+	// Get updated complaint
+	updatedComplaint, _ := GetComplaintByID(id)
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Complaint verified successfully",
+		"data":    updatedComplaint.ToComplaintResponse(),
+	})
+}
+
+// GetUnverifiedScanComplaintsHandler gets unverified scan complaints (admin only)
+func GetUnverifiedScanComplaintsHandler(c *gin.Context) {
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 100 {
+		limit = 10
+	}
+	offset := (page - 1) * limit
+
+	complaints, total, err := GetUnverifiedScanComplaints(offset, limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get unverified complaints"})
+		return
+	}
+
+	responses := make([]ComplaintResponse, len(complaints))
+	for i, complaint := range complaints {
+		responses[i] = complaint.ToComplaintResponse()
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": ComplaintListResponse{
+			Complaints: responses,
+			Total:      total,
+			Page:       page,
+			Limit:      limit,
+		},
+	})
+}
+
+// ============ ML EXPORT HANDLER ============
+
+// ExportTrainingDataHandler exports verified scan complaints for ML training (admin only)
+func ExportTrainingDataHandler(c *gin.Context) {
+	data, err := ExportTrainingData()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to export training data"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Training data exported successfully",
+		"count":   len(data),
+		"data":    data,
+	})
+}
+
+// GetProblematicDiseasesHandler returns diseases with most complaints
+func GetProblematicDiseasesHandler(c *gin.Context) {
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+
+	data, err := GetMostProblematicDiseases(limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get problematic diseases"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Problematic diseases retrieved successfully",
+		"count":   len(data),
+		"data":    data,
+	})
+}
+
+// GetComplaintTrendsHandler returns daily complaint trends
+func GetComplaintTrendsHandler(c *gin.Context) {
+	days, _ := strconv.Atoi(c.DefaultQuery("days", "30"))
+
+	data, err := GetComplaintTrends(days)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get complaint trends"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Complaint trends retrieved successfully",
+		"days":    days,
+		"count":   len(data),
+		"data":    data,
+	})
+}
+
+// GetOverallStatsHandler returns overall system statistics
+func GetOverallStatsHandler(c *gin.Context) {
+	data, err := GetOverallStats()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get overall stats"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Overall statistics retrieved successfully",
+		"data":    data,
+	})
+}
+
+// GetTopContributorsHandler returns users who contributed most
+func GetTopContributorsHandler(c *gin.Context) {
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+
+	data, err := GetTopContributors(limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get top contributors"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Top contributors retrieved successfully",
+		"count":   len(data),
+		"data":    data,
+	})
 }
