@@ -3,6 +3,7 @@ package posts
 import (
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"plantheon-backend/common"
@@ -159,8 +160,22 @@ func GetPostsHandler(c *gin.Context) {
 			viewerID = user.ID
 		}
 	}
+
+	// Parse pagination params
+	page := 1
+	limit := 10
+	if p := c.Query("page"); p != "" {
+		if parsed, err := strconv.Atoi(p); err == nil && parsed > 0 {
+			page = parsed
+		}
+	}
+	if l := c.Query("limit"); l != "" {
+		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 && parsed <= 100 {
+			limit = parsed
+		}
+	}
 	
-	posts, err := GetAllPosts(viewerID)
+	posts, total, err := GetAllPosts(viewerID, page, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to get posts",
@@ -168,9 +183,69 @@ func GetPostsHandler(c *gin.Context) {
 		return
 	}
 
+	// Calculate hasMore for infinite scroll
+	hasMore := int64(page*limit) < total
+
 	c.JSON(http.StatusOK, gin.H{
-		"data": posts,
+		"data":     posts,
+		"total":    total,
+		"page":     page,
+		"limit":    limit,
+		"has_more": hasMore,
 	})	
+}
+
+// SearchPostsHandler searches posts by author name or content
+func SearchPostsHandler(c *gin.Context) {
+	// Extract viewer's user ID from JWT token
+	viewerID := ""
+	userInterface, exists := c.Get("user")
+	if exists {
+		user, ok := userInterface.(*users.User)
+		if ok {
+			viewerID = user.ID
+		}
+	}
+
+	keyword := c.Query("keyword")
+	if keyword == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "keyword is required",
+		})
+		return
+	}
+
+	page := 1
+	limit := 10
+	if p := c.Query("page"); p != "" {
+		if parsed, err := strconv.Atoi(p); err == nil && parsed > 0 {
+			page = parsed
+		}
+	}
+	if l := c.Query("limit"); l != "" {
+		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 && parsed <= 100 {
+			limit = parsed
+		}
+	}
+
+	posts, total, err := SearchPosts(keyword, viewerID, page, limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to search posts",
+		})
+		return
+	}
+
+	// Calculate hasMore for infinite scroll
+	hasMore := int64(page*limit) < total
+
+	c.JSON(http.StatusOK, gin.H{
+		"data":     posts,
+		"total":    total,
+		"page":     page,
+		"limit":    limit,
+		"has_more": hasMore,
+	})
 }
 
 func GetPostByIDHandler(c *gin.Context) {

@@ -36,18 +36,33 @@ func UpdatePost(post *Post) error {
 	return nil
 }
 
-func GetAllPosts(viewerID string) (PostListResponse, error) {
+func GetAllPosts(viewerID string, page, limit int) (PostListResponse, int64, error) {
 	service := NewPostsService()
 	var posts []Post
+	var total int64
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 100 {
+		limit = 10
+	}
+	offset := (page - 1) * limit
 	
 	// Exclude deleted posts and viewer's own posts if viewerID is provided
-	query := service.db.Where("is_deleted = ?", false)
+	query := service.db.Model(&Post{}).Where("is_deleted = ?", false)
 	if viewerID != "" {
 		query = query.Where("user_id != ?", viewerID)
 	}
+
+	// Count total
+	if err := query.Count(&total).Error; err != nil {
+		return PostListResponse{}, 0, err
+	}
 	
-	if err := query.Find(&posts).Error; err != nil {
-		return PostListResponse{}, err
+	// Get paginated results
+	if err := query.Order("created_at DESC").Offset(offset).Limit(limit).Find(&posts).Error; err != nil {
+		return PostListResponse{}, 0, err
 	}
 
 	// Batch-fetch likes for all posts by viewerID to avoid N+1
@@ -134,7 +149,135 @@ func GetAllPosts(viewerID string) (PostListResponse, error) {
 	return PostListResponse{
 		Posts: postResponses,
 		Total: len(postResponses),
-	}, nil
+	}, total, nil
+}
+
+// SearchPosts searches posts by user name or content
+func SearchPosts(keyword string, viewerID string, page, limit int) (PostListResponse, int64, error) {
+	service := NewPostsService()
+	var posts []Post
+	var total int64
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 100 {
+		limit = 10
+	}
+	offset := (page - 1) * limit
+
+	// Search pattern
+	searchPattern := "%" + keyword + "%"
+
+	// Get user IDs that match the keyword
+	var matchingUserIDs []string
+	service.db.Table("users").Select("id").Where("full_name ILIKE ?", searchPattern).Pluck("id", &matchingUserIDs)
+
+	// Build query for posts
+	query := service.db.Model(&Post{}).Where("is_deleted = ?", false)
+
+	// Search by content OR by user (author name)
+	if len(matchingUserIDs) > 0 {
+		query = query.Where("content ILIKE ? OR user_id IN ?", searchPattern, matchingUserIDs)
+	} else {
+		query = query.Where("content ILIKE ?", searchPattern)
+	}
+
+	// Count total
+	if err := query.Count(&total).Error; err != nil {
+		return PostListResponse{}, 0, err
+	}
+
+	// Get paginated results
+	if err := query.Order("created_at DESC").Offset(offset).Limit(limit).Find(&posts).Error; err != nil {
+		return PostListResponse{}, 0, err
+	}
+
+	// Batch-fetch likes for all posts by viewerID to avoid N+1
+	postIDs := make([]string, len(posts))
+	for i, p := range posts {
+		postIDs[i] = p.ID
+	}
+	var likedPostIDs []string
+	if viewerID != "" && len(postIDs) > 0 {
+		type LikeResult struct {
+			PostID string
+		}
+		var likeResults []LikeResult
+		if err := service.db.Table("post_likes").Select("post_id").Where("user_id = ? AND post_id IN ?", viewerID, postIDs).Find(&likeResults).Error; err == nil {
+			for _, lr := range likeResults {
+				likedPostIDs = append(likedPostIDs, lr.PostID)
+			}
+		}
+	}
+	likedMap := make(map[string]bool)
+	for _, pid := range likedPostIDs {
+		likedMap[pid] = true
+	}
+
+	var postResponses []PostResponse
+	for _, post := range posts {
+		// Lấy thông tin user từ UserID
+		var user users.User
+		if err := service.db.Where("id = ?", post.UserID).First(&user).Error; err != nil {
+			user.FullName = "Unknown User"
+			user.Avatar = ""
+		}
+
+		// Lấy thông tin disease nếu có disease_link
+		var diseaseName *string
+		var diseaseDescription *string
+		var diseaseSolution *string
+		var diseaseImageLink []string
+		if post.DiseaseLink != nil && *post.DiseaseLink != "" {
+			var disease struct {
+				Name        *string
+				Description *string
+				Solution    *string
+				ImageLink   interface{}
+			}
+			if err := service.db.Table("diseases").Select("name, description, solution, image_link").Where("id = ?", *post.DiseaseLink).First(&disease).Error; err == nil {
+				diseaseName = disease.Name
+				diseaseDescription = disease.Description
+				diseaseSolution = disease.Solution
+				if imgLinks, ok := disease.ImageLink.([]interface{}); ok {
+					for _, link := range imgLinks {
+						if strLink, ok := link.(string); ok {
+							diseaseImageLink = append(diseaseImageLink, strLink)
+						}
+					}
+				}
+			}
+		}
+
+		postResponses = append(postResponses, PostResponse{
+			ID:                 post.ID,
+			UserID:             post.UserID,
+			FullName:           user.FullName,
+			Avatar:             user.Avatar,
+			Content:            post.Content,
+			ImageLink:          post.ImageLink,
+			DiseaseLink:        post.DiseaseLink,
+			DiseaseName:        diseaseName,
+			DiseaseDescription: diseaseDescription,
+			DiseaseSolution:    diseaseSolution,
+			DiseaseImageLink:   diseaseImageLink,
+			ScanHistoryID:      post.ScanHistoryID,
+			Tags:               post.Tags,
+			LikeNum:            post.LikeNum,
+			Liked:              likedMap[post.ID],
+			IsMyPost:           viewerID != "" && post.UserID == viewerID,
+			CommentNum:         post.CommentNum,
+			ShareNum:           post.ShareNum,
+			CreatedAt:          post.CreatedAt,
+			UpdatedAt:          post.UpdatedAt,
+		})
+	}
+
+	return PostListResponse{
+		Posts: postResponses,
+		Total: len(postResponses),
+	}, total, nil
 }
 
 func GetPostByID(id string, viewerID string) (*PostDetailResponse, error) {

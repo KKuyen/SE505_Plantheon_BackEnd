@@ -19,6 +19,109 @@ func NewComplaintService() *ComplaintService {
 	}
 }
 
+// GetTargetInfo retrieves information about the target (post or comment)
+func GetTargetInfo(targetID string, targetType ComplaintType) TargetInfo {
+	service := NewComplaintService()
+	info := TargetInfo{ID: targetID}
+
+	if targetType == ComplaintTypePost {
+		var post struct {
+			ID        string
+			Content   string
+			UserID    string
+			IsDeleted bool
+			CreatedAt time.Time
+		}
+		if err := service.db.Table("posts").
+			Select("id, content, user_id, is_deleted, created_at").
+			Where("id = ?", targetID).First(&post).Error; err == nil {
+			info.Content = post.Content
+			info.UserID = post.UserID
+			info.IsDeleted = post.IsDeleted
+			info.CreatedAt = post.CreatedAt
+
+			// Get user info
+			var user struct {
+				FullName string
+				Avatar   string
+			}
+			if err := service.db.Table("users").
+				Select("full_name, avatar").
+				Where("id = ?", post.UserID).First(&user).Error; err == nil {
+				info.UserName = user.FullName
+				info.Avatar = user.Avatar
+			}
+		}
+	} else if targetType == ComplaintTypeComment {
+		var comment struct {
+			ID        string
+			Content   string
+			UserID    string
+			IsDeleted bool
+			CreatedAt time.Time
+		}
+		if err := service.db.Table("comments").
+			Select("id, content, user_id, is_deleted, created_at").
+			Where("id = ?", targetID).First(&comment).Error; err == nil {
+			info.Content = comment.Content
+			info.UserID = comment.UserID
+			info.IsDeleted = comment.IsDeleted
+			info.CreatedAt = comment.CreatedAt
+
+			// Get user info
+			var user struct {
+				FullName string
+				Avatar   string
+			}
+			if err := service.db.Table("users").
+				Select("full_name, avatar").
+				Where("id = ?", comment.UserID).First(&user).Error; err == nil {
+				info.UserName = user.FullName
+				info.Avatar = user.Avatar
+			}
+		}
+	}
+
+	return info
+}
+
+// GetReporterInfo retrieves information about the reporter
+func GetReporterInfo(userID string) ReporterInfo {
+	service := NewComplaintService()
+	info := ReporterInfo{ID: userID}
+
+	var user struct {
+		FullName string
+		Avatar   string
+	}
+	if err := service.db.Table("users").
+		Select("full_name, avatar").
+		Where("id = ?", userID).First(&user).Error; err == nil {
+		info.UserName = user.FullName
+		info.Avatar = user.Avatar
+	}
+
+	return info
+}
+
+// ToComplaintWithTargetResponse converts Complaint to ComplaintWithTargetResponse
+func (c *Complaint) ToComplaintWithTargetResponse() ComplaintWithTargetResponse {
+	return ComplaintWithTargetResponse{
+		ID:         c.ID,
+		Reporter:   GetReporterInfo(c.UserID),
+		Target:     GetTargetInfo(c.TargetID, c.TargetType),
+		TargetType: string(c.TargetType),
+		Category:   string(c.Category),
+		Content:    c.Content,
+		Status:     string(c.Status),
+		AdminNotes: c.AdminNotes,
+		ResolvedAt: c.ResolvedAt,
+		ResolvedBy: c.ResolvedBy,
+		CreatedAt:  c.CreatedAt,
+		UpdatedAt:  c.UpdatedAt,
+	}
+}
+
 // CreateComplaint creates a new complaint
 func CreateComplaint(complaint *Complaint) error {
 	service := NewComplaintService()
@@ -137,4 +240,50 @@ func GetComplaintsCount(status string, targetType string) (int64, error) {
 
 	err := query.Count(&count).Error
 	return count, err
+}
+
+// GetComplaintsAboutMyContent gets all complaints about posts/comments owned by the user
+func GetComplaintsAboutMyContent(userID string, status string, targetType string) ([]Complaint, error) {
+	service := NewComplaintService()
+	var complaints []Complaint
+
+	// Get post IDs owned by user
+	var postIDs []string
+	service.db.Table("posts").Select("id").Where("user_id = ?", userID).Pluck("id", &postIDs)
+
+	// Get comment IDs owned by user
+	var commentIDs []string
+	service.db.Table("comments").Select("id").Where("user_id = ?", userID).Pluck("id", &commentIDs)
+
+	// If user has no posts and no comments, return empty
+	if len(postIDs) == 0 && len(commentIDs) == 0 {
+		return []Complaint{}, nil
+	}
+
+	// Build query for complaints about user's content
+	query := service.db.Model(&Complaint{})
+
+	// Build OR condition for posts and comments
+	if len(postIDs) > 0 && len(commentIDs) > 0 {
+		query = query.Where(
+			"(target_id IN ? AND target_type = ?) OR (target_id IN ? AND target_type = ?)",
+			postIDs, ComplaintTypePost, commentIDs, ComplaintTypeComment,
+		)
+	} else if len(postIDs) > 0 {
+		query = query.Where("target_id IN ? AND target_type = ?", postIDs, ComplaintTypePost)
+	} else {
+		query = query.Where("target_id IN ? AND target_type = ?", commentIDs, ComplaintTypeComment)
+	}
+
+	// Apply optional filters
+	if status != "" {
+		query = query.Where("status = ?", status)
+	}
+	if targetType != "" {
+		query = query.Where("target_type = ?", targetType)
+	}
+
+	// Get all results
+	err := query.Order("created_at DESC").Find(&complaints).Error
+	return complaints, err
 }

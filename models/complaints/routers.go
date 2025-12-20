@@ -146,6 +146,40 @@ func GetComplaintByIDHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": complaint.ToComplaintResponse()})
 }
 
+// GetComplaintsAboutMyContentHandler gets all complaints about the current user's posts/comments
+func GetComplaintsAboutMyContentHandler(c *gin.Context) {
+	userInterface, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found in context"})
+		return
+	}
+
+	user, ok := userInterface.(*users.User)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user format"})
+		return
+	}
+
+	status := c.Query("status")
+	targetType := c.Query("target_type")
+
+	complaints, err := GetComplaintsAboutMyContent(user.ID, status, targetType)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get complaints"})
+		return
+	}
+
+	responses := make([]ComplaintWithTargetResponse, len(complaints))
+	for i, complaint := range complaints {
+		responses[i] = complaint.ToComplaintWithTargetResponse()
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data":  responses,
+		"total": len(responses),
+	})
+}
+
 // DeleteComplaintHandler deletes a complaint (user can only delete their own pending complaints)
 func DeleteComplaintHandler(c *gin.Context) {
 	userInterface, exists := c.Get("user")

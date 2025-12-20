@@ -233,6 +233,7 @@ func main() {
 		postRoutes.Use(users.AuthMiddleware())
 		{
 			postRoutes.GET("", posts.GetPostsHandler)
+			postRoutes.GET("/search", posts.SearchPostsHandler)
 			postRoutes.GET("/my", posts.GetMyPostsHandler)
 			postRoutes.GET("/:id", posts.GetPostByIDHandler)
 			postRoutes.POST("", posts.CreatePostHandler)
@@ -345,6 +346,7 @@ func main() {
 		{
 			complaintRoutes.POST("", complaints.CreateComplaintHandler)
 			complaintRoutes.GET("/my", complaints.GetMyComplaintsHandler)
+			complaintRoutes.GET("/about-me", complaints.GetComplaintsAboutMyContentHandler)
 			complaintRoutes.GET("/:id", complaints.GetComplaintByIDHandler)
 			complaintRoutes.DELETE("/:id", complaints.DeleteComplaintHandler)
 		}
