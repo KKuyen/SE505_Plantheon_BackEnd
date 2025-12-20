@@ -177,14 +177,15 @@ func GetAllComplaints(offset, limit int, status string, targetType string) ([]Co
 
 	query := service.db.Model(&Complaint{})
 
-	// Filter out SCAN type complaints
-	query = query.Where("target_type != ?", ComplaintTypeScan)
-
 	if status != "" {
 		query = query.Where("status = ?", status)
 	}
 	if targetType != "" {
+		// If targetType is specified, filter by it (including SCAN if specified)
 		query = query.Where("target_type = ?", targetType)
+	} else {
+		// If no targetType specified, filter out SCAN type complaints by default
+		query = query.Where("target_type != ?", ComplaintTypeScan)
 	}
 
 	if err := query.Count(&total).Error; err != nil {
