@@ -102,13 +102,14 @@ func CreateNewsHandler(c *gin.Context) {
 	}
 
 	blog := &Blog{
-		Title:         req.Title,
-		Description:   req.Description,
-		Content:       req.Content,
-		CoverImageURL: req.CoverImageURL,
-		BlogTagID:     req.BlogTagID,
-		Status:        req.Status,
-		UserID:        user.ID,
+		Title:            req.Title,
+		Description:      req.Description,
+		Content:          req.Content,
+		CoverImageURL:    req.CoverImageURL,
+		SubGuideStagesID: req.SubGuideStagesID,
+		BlogTagID:        req.BlogTagID,
+		Status:           req.Status,
+		UserID:           user.ID,
 	}
 
 	// Validate provided blog tag id exists
@@ -175,13 +176,14 @@ func UpdateNewsHandler(c *gin.Context) {
 	}
 
 	blog := &Blog{
-		ID:            id,
-		Title:         req.Title,
-		Description:   req.Description,
-		Content:       req.Content,
-		CoverImageURL: req.CoverImageURL,
-		BlogTagID:     req.BlogTagID,
-		Status:        req.Status,
+		ID:               id,
+		Title:            req.Title,
+		Description:      req.Description,
+		Content:          req.Content,
+		CoverImageURL:    req.CoverImageURL,
+		SubGuideStagesID: req.SubGuideStagesID,
+		BlogTagID:        req.BlogTagID,
+		Status:           req.Status,
 	}
 
 	// Validate provided blog tag id exists

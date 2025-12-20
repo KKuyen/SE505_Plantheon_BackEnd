@@ -4,6 +4,15 @@ import (
 	"time"
 )
 
+// DiseaseInfo represents basic disease information for nested responses
+type DiseaseInfo struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	ClassName string `json:"class_name"`
+	Type      string `json:"type"`
+	PlantName string `json:"plant_name"`
+}
+
 // ComplaintResponse represents the response for a complaint
 type ComplaintResponse struct {
 	ID         string     `json:"id"`
@@ -12,10 +21,24 @@ type ComplaintResponse struct {
 	TargetType string     `json:"target_type"`
 	Category   string     `json:"category"`
 	Content    string     `json:"content"`
+	ImageURL   string     `json:"image_url,omitempty"`
 	Status     string     `json:"status"`
 	AdminNotes string     `json:"admin_notes,omitempty"`
 	ResolvedAt *time.Time `json:"resolved_at,omitempty"`
 	ResolvedBy *string    `json:"resolved_by,omitempty"`
+	
+	// Scan-specific fields
+	PredictedDiseaseID     *string      `json:"predicted_disease_id,omitempty"`
+	PredictedDisease       *DiseaseInfo `json:"predicted_disease,omitempty"`
+	UserSuggestedDiseaseID *string      `json:"user_suggested_disease_id,omitempty"`
+	UserSuggestedDisease   *DiseaseInfo `json:"user_suggested_disease,omitempty"`
+	VerifiedDiseaseID      *string      `json:"verified_disease_id,omitempty"`
+	VerifiedDisease        *DiseaseInfo `json:"verified_disease,omitempty"`
+	ConfidenceScore        *float64     `json:"confidence_score,omitempty"`
+	IsVerified             bool         `json:"is_verified"`
+	VerifiedBy             *string      `json:"verified_by,omitempty"` // Admin who verified scan complaint
+	VerifiedAt             *time.Time   `json:"verified_at,omitempty"`
+	
 	CreatedAt  time.Time  `json:"created_at"`
 	UpdatedAt  time.Time  `json:"updated_at"`
 }
@@ -76,6 +99,35 @@ type CreateComplaintRequest struct {
 	TargetType string `json:"target_type" binding:"required"` // POST or COMMENT
 	Category   string `json:"category" binding:"required"`    // SPAM, HARASSMENT, etc.
 	Content    string `json:"content"`                        // Optional additional details
+}
+
+// CreateScanComplaintRequest represents the request to create a scan complaint
+type CreateScanComplaintRequest struct {
+	TargetType             string   `json:"target_type" binding:"required"`              // Must be "SCAN"
+	PredictedDiseaseID     string   `json:"predicted_disease_id" binding:"required"`     // Disease that AI predicted
+	UserSuggestedDiseaseID *string  `json:"user_suggested_disease_id"`                   // Disease that user thinks is correct (optional)
+	ConfidenceScore        float64  `json:"confidence_score" binding:"required,min=0,max=1"` // AI confidence (0.0-1.0)
+	Category               string   `json:"category" binding:"required"`                 // WRONG_RESULT, MISIDENTIFIED, etc.
+	ImageURL               string   `json:"image_url" binding:"required"`                // Image URL (required for scans)
+	Content                string   `json:"content"`                                     // Optional additional details
+}
+
+// VerifyComplaintRequest represents the request to verify a scan complaint (admin only)
+type VerifyComplaintRequest struct {
+	VerifiedDiseaseID string `json:"verified_disease_id" binding:"required"` // Ground truth disease ID
+	IsVerified        bool   `json:"is_verified"`                            // Verification status
+	AdminNotes        string `json:"admin_notes"`                            // Optional admin notes
+}
+
+// TrainingDataExport represents exported data for ML training
+type TrainingDataExport struct {
+	ImageURL              string    `json:"image_url"`
+	PredictedDiseaseID    string    `json:"predicted_disease_id"`
+	PredictedClassName    string    `json:"predicted_class_name"`
+	VerifiedDiseaseID     string    `json:"verified_disease_id"`
+	VerifiedClassName     string    `json:"verified_class_name"`
+	ConfidenceScore       float64   `json:"confidence_score"`
+	CreatedAt             time.Time `json:"created_at"`
 }
 
 // UpdateComplaintStatusRequest represents the request to update complaint status (admin only)
