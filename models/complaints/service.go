@@ -177,6 +177,9 @@ func GetAllComplaints(offset, limit int, status string, targetType string) ([]Co
 
 	query := service.db.Model(&Complaint{})
 
+	// Filter out SCAN type complaints
+	query = query.Where("target_type != ?", ComplaintTypeScan)
+
 	if status != "" {
 		query = query.Where("status = ?", status)
 	}
