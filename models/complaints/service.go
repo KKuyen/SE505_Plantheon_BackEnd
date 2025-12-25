@@ -261,46 +261,15 @@ func GetComplaintsCount(status string, targetType string, isVerified *bool) (int
 	return count, err
 }
 
-// GetComplaintsAboutMyContent gets all complaints about posts/comments owned by the user
+// GetComplaintsAboutMyContent gets all complaints created by the user (only POST and COMMENT types)
 func GetComplaintsAboutMyContent(userID string, status string, targetType string) ([]Complaint, error) {
 	service := NewComplaintService()
 	var complaints []Complaint
 
-	// Get post IDs owned by user
-	var postIDs []string
-	service.db.Table("posts").Select("id").Where("user_id = ?", userID).Pluck("id", &postIDs)
-
-	// Get comment IDs owned by user
-	var commentIDs []string
-	service.db.Table("comments").Select("id").Where("user_id = ?", userID).Pluck("id", &commentIDs)
-
-	// If user has no posts and no comments, return empty
-	if len(postIDs) == 0 && len(commentIDs) == 0 {
-		return []Complaint{}, nil
-	}
-
-	// Build query for complaints about user's content
-	query := service.db.Model(&Complaint{})
-
-	// Build OR condition for posts and comments
-	if len(postIDs) > 0 && len(commentIDs) > 0 {
-		query = query.Where(
-			"(target_id IN ? AND target_type = ?) OR (target_id IN ? AND target_type = ?)",
-			postIDs, ComplaintTypePost, commentIDs, ComplaintTypeComment,
-		)
-	} else if len(postIDs) > 0 {
-		query = query.Where("target_id IN ? AND target_type = ?", postIDs, ComplaintTypePost)
-	} else {
-		query = query.Where("target_id IN ? AND target_type = ?", commentIDs, ComplaintTypeComment)
-	}
-
-	// Apply optional filters
-	if status != "" {
-		query = query.Where("status = ?", status)
-	}
-	if targetType != "" {
-		query = query.Where("target_type = ?", targetType)
-	}
+	// Get all complaints where user_id matches the token user and target_type is POST or COMMENT
+	query := service.db.Model(&Complaint{}).
+		Where("user_id = ?", userID).
+		Where("target_type IN ?", []ComplaintType{ComplaintTypePost, ComplaintTypeComment})
 
 	// Get all results
 	err := query.Order("created_at DESC").Find(&complaints).Error

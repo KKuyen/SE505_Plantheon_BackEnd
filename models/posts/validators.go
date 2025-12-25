@@ -18,8 +18,8 @@ func ValidateCreatePostRequest(req *CreatePostRequest) error {
 	}
 	// Validate image link array (optional)
 	if req.ImageLink != nil {
-		if len(req.ImageLink) > 5 {
-			return errors.New("image link array cannot have more than 5 items")
+		if len(req.ImageLink) > 6 {
+			return errors.New("image link array cannot have more than 6 items")
 		}
 	}
 	for i, link := range req.ImageLink {
