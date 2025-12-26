@@ -78,6 +78,28 @@ func GetAllScanHistories() ([]ScanHistory, error) {
 	return scanHistories, nil
 }
 
+// GetScanHistoriesByUserID gets scan histories for a specific user with disease details
+func GetScanHistoriesByUserID(userID string) ([]ScanHistory, error) {
+	service := NewScanHistoryService()
+	var scanHistories []ScanHistory
+	
+	// Get scan histories filtered by user ID
+	if err := service.db.Where("user_id = ?", userID).Order("created_at DESC").Find(&scanHistories).Error; err != nil {
+		return nil, err
+	}
+	
+	// Load disease details for each scan history
+	for i := range scanHistories {
+		var disease diseases.Disease
+		if err := service.db.Where("id = ?", scanHistories[i].DiseaseID).First(&disease).Error; err != nil {
+			return nil, err
+		}
+		scanHistories[i].Disease = disease
+	}
+	
+	return scanHistories, nil
+}
+
 // DeleteScanHistoryByID deletes a scan history by ID
 func DeleteScanHistoryByID(id string) error {
 	service := NewScanHistoryService()
@@ -102,6 +124,18 @@ func DeleteAllScanHistories() error {
 	
 	// Delete all scan histories
 	if err := service.db.Where("1 = 1").Delete(&ScanHistory{}).Error; err != nil {
+		return err
+	}
+	
+	return nil
+}
+
+// DeleteScanHistoriesByUserID deletes all scan histories for a specific user
+func DeleteScanHistoriesByUserID(userID string) error {
+	service := NewScanHistoryService()
+	
+	// Delete scan histories filtered by user ID
+	if err := service.db.Where("user_id = ?", userID).Delete(&ScanHistory{}).Error; err != nil {
 		return err
 	}
 	

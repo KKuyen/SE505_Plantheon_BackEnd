@@ -64,8 +64,25 @@ func CreateScanHistoryHandler(c *gin.Context) {
 	})
 }
 
-// GetScanHistoriesHandler handles getting all scan histories
+// GetScanHistoriesHandler handles getting all scan histories for the authenticated user
 func GetScanHistoriesHandler(c *gin.Context) {
+	// Get user from JWT token context
+	userInterface, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User not found in context",
+		})
+		return
+	}
+
+	user, ok := userInterface.(*users.User)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Invalid user format",
+		})
+		return
+	}
+
 	sizeParam := c.DefaultQuery("size", "0")
 	size := 0
 	if sizeParam != "0" {
@@ -77,7 +94,8 @@ func GetScanHistoriesHandler(c *gin.Context) {
 		}
 	}
 
-	scanHistories, err := GetAllScanHistories()
+	// Get scan histories filtered by user ID
+	scanHistories, err := GetScanHistoriesByUserID(user.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to get scan histories"})
@@ -95,6 +113,23 @@ func GetScanHistoriesHandler(c *gin.Context) {
 
 // GetScanHistoryByIDHandler handles getting a scan history by ID
 func GetScanHistoryByIDHandler(c *gin.Context) {
+	// Get user from JWT token context
+	userInterface, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User not found in context",
+		})
+		return
+	}
+
+	user, ok := userInterface.(*users.User)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Invalid user format",
+		})
+		return
+	}
+
 	id := c.Param("id")
 	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -117,6 +152,14 @@ func GetScanHistoryByIDHandler(c *gin.Context) {
 		return
 	}
 
+	// Verify that the scan history belongs to the authenticated user
+	if scanHistory.UserID != user.ID {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "You do not have permission to access this scan history",
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"data": scanHistory.ToScanHistoryResponse(),
 	})
@@ -124,6 +167,23 @@ func GetScanHistoryByIDHandler(c *gin.Context) {
 
 // DeleteScanHistoryByIDHandler handles deleting a scan history by ID
 func DeleteScanHistoryByIDHandler(c *gin.Context) {
+	// Get user from JWT token context
+	userInterface, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User not found in context",
+		})
+		return
+	}
+
+	user, ok := userInterface.(*users.User)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Invalid user format",
+		})
+		return
+	}
+
 	id := c.Param("id")
 	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -132,7 +192,8 @@ func DeleteScanHistoryByIDHandler(c *gin.Context) {
 		return
 	}
 
-	err := DeleteScanHistoryByID(id)
+	// Get scan history to verify ownership
+	scanHistory, err := GetScanHistoryByID(id)
 	if err != nil {
 		if err.Error() == "record not found" {
 			c.JSON(http.StatusNotFound, gin.H{
@@ -140,6 +201,23 @@ func DeleteScanHistoryByIDHandler(c *gin.Context) {
 			})
 			return
 		}
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get scan history",
+		})
+		return
+	}
+
+	// Verify that the scan history belongs to the authenticated user
+	if scanHistory.UserID != user.ID {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "You do not have permission to delete this scan history",
+		})
+		return
+	}
+
+	// Delete the scan history
+	err = DeleteScanHistoryByID(id)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to delete scan history",
 		})
@@ -151,9 +229,27 @@ func DeleteScanHistoryByIDHandler(c *gin.Context) {
 	})
 }
 
-// DeleteAllScanHistoriesHandler handles deleting all scan histories
+// DeleteAllScanHistoriesHandler handles deleting all scan histories for the authenticated user
 func DeleteAllScanHistoriesHandler(c *gin.Context) {
-	err := DeleteAllScanHistories()
+	// Get user from JWT token context
+	userInterface, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User not found in context",
+		})
+		return
+	}
+
+	user, ok := userInterface.(*users.User)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Invalid user format",
+		})
+		return
+	}
+
+	// Delete scan histories filtered by user ID
+	err := DeleteScanHistoriesByUserID(user.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to delete all scan histories",
