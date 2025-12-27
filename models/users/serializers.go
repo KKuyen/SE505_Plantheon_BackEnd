@@ -65,3 +65,28 @@ func (u *User) ToUserResponse() UserResponse {
 		UpdatedAt: u.UpdatedAt,
 	}
 }
+
+// ForgotPasswordRequest represents forgot password request
+type ForgotPasswordRequest struct {
+	Email string `json:"email" binding:"required,email"`
+}
+
+// VerifyOTPRequest represents OTP verification request
+type VerifyOTPRequest struct {
+	Email string `json:"email" binding:"required,email"`
+	OTP   string `json:"otp" binding:"required,len=6"`
+}
+
+// ResetPasswordRequest represents password reset request with OTP
+type ResetPasswordRequest struct {
+	Email       string `json:"email" binding:"required,email"`
+	OTP         string `json:"otp" binding:"required,len=6"`
+	NewPassword string `json:"new_password" binding:"required,min=6"`
+}
+
+// VerifyOTPResponse represents OTP verification response
+type VerifyOTPResponse struct {
+	Valid             bool   `json:"valid"`
+	Message           string `json:"message"`
+	AttemptsRemaining *int   `json:"attempts_remaining,omitempty"`
+}

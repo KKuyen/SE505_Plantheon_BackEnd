@@ -122,3 +122,128 @@ func EnableUser(id string) error {
 	}
 	return result.Error
 }
+
+// GenerateOTP creates a random 6-digit OTP and sends it via email
+func GenerateOTP(email string) error {
+	service := NewUserService()
+	
+	// Find user by email
+	user, err := GetUserByEmail(email)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return gorm.ErrRecordNotFound
+		}
+		return err
+	}
+	
+	// Check rate limiting (1 minute between requests)
+	if user.LastOTPRequest != nil {
+		timeSinceLastRequest := common.GetCurrentTime().Sub(*user.LastOTPRequest)
+		if timeSinceLastRequest.Minutes() < 1 {
+			return common.ErrTooManyRequests
+		}
+	}
+	
+	// Generate random 6-digit OTP
+	otp := generateRandomOTP()
+	
+	// Set expiry time (5 minutes from now)
+	expiryTime := common.GetCurrentTime().Add(5 * common.Minute)
+	
+	// Update user with OTP data
+	user.OTPCode = &otp
+	user.OTPExpiry = &expiryTime
+	user.OTPAttempts = 0
+	now := common.GetCurrentTime()
+	user.LastOTPRequest = &now
+	
+	if err := service.db.Save(user).Error; err != nil {
+		return err
+	}
+	
+	// Send OTP via email
+	emailService := common.NewEmailService()
+	if err := emailService.SendOTP(email, otp); err != nil {
+		return err
+	}
+	
+	return nil
+}
+
+// VerifyOTP checks if the provided OTP is valid
+func VerifyOTP(email, otp string) (valid bool, attemptsRemaining int, err error) {
+	service := NewUserService()
+	
+	// Find user by email
+	user, err := GetUserByEmail(email)
+	if err != nil {
+		return false, 0, err
+	}
+	
+	// Check if OTP exists
+	if user.OTPCode == nil || user.OTPExpiry == nil {
+		return false, 0, common.ErrInvalidOTP
+	}
+	
+	// Check if OTP has expired
+	if common.GetCurrentTime().After(*user.OTPExpiry) {
+		return false, 0, common.ErrOTPExpired
+	}
+	
+	// Check if max attempts exceeded
+	if user.OTPAttempts >= 3 {
+		return false, 0, common.ErrTooManyAttempts
+	}
+	
+	// Verify OTP
+	if *user.OTPCode != otp {
+		// Increment attempts
+		user.OTPAttempts++
+		service.db.Save(user)
+		remaining := 3 - user.OTPAttempts
+		return false, remaining, nil
+	}
+	
+	// OTP is valid
+	return true, 0, nil
+}
+
+// ResetPasswordWithOTP resets user password after verifying OTP
+func ResetPasswordWithOTP(email, otp, newPassword string) error {
+	service := NewUserService()
+	
+	// Verify OTP one last time
+	valid, _, err := VerifyOTP(email, otp)
+	if err != nil {
+		return err
+	}
+	if !valid {
+		return common.ErrInvalidOTP
+	}
+	
+	// Find user
+	user, err := GetUserByEmail(email)
+	if err != nil {
+		return err
+	}
+	
+	// Hash new password
+	hashedPassword, err := common.HashPassword(newPassword)
+	if err != nil {
+		return err
+	}
+	
+	// Update password and clear OTP data
+	user.Password = hashedPassword
+	user.OTPCode = nil
+	user.OTPExpiry = nil
+	user.OTPAttempts = 0
+	user.LastOTPRequest = nil
+	
+	return service.db.Save(user).Error
+}
+
+// generateRandomOTP creates a random 6-digit OTP
+func generateRandomOTP() string {
+	return common.GenerateRandomCode(6)
+}

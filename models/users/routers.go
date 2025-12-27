@@ -458,3 +458,124 @@ func UpdateUserByAdminHandler(c *gin.Context) {
 		"data":    user.ToUserResponse(),
 	})
 }
+
+// ForgotPassword handles forgot password request - generates and sends OTP
+func ForgotPassword(c *gin.Context) {
+	var req ForgotPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request format",
+		})
+		return
+	}
+
+	// Generate and send OTP
+	err := GenerateOTP(req.Email)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Email không tồn tại trong hệ thống",
+			})
+			return
+		}
+		if customErr, ok := err.(*common.CustomError); ok {
+			c.JSON(customErr.Code, gin.H{
+				"error": customErr.Message,
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to send OTP",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":    "OTP đã được gửi đến email của bạn",
+		"expires_in": "5m",
+	})
+}
+
+// VerifyOTPHandler handles OTP verification
+func VerifyOTPHandler(c *gin.Context) {
+	var req VerifyOTPRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request format",
+		})
+		return
+	}
+
+	// Verify OTP
+	valid, attemptsRemaining, err := VerifyOTP(req.Email, req.OTP)
+	if err != nil {
+		if customErr, ok := err.(*common.CustomError); ok {
+			c.JSON(customErr.Code, gin.H{
+				"error": customErr.Message,
+			})
+			return
+		}
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Email không tồn tại trong hệ thống",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to verify OTP",
+		})
+		return
+	}
+
+	if !valid {
+		response := VerifyOTPResponse{
+			Valid:             false,
+			Message:           "OTP không đúng",
+			AttemptsRemaining: &attemptsRemaining,
+		}
+		c.JSON(http.StatusOK, response)
+		return
+	}
+
+	response := VerifyOTPResponse{
+		Valid:   true,
+		Message: "OTP hợp lệ",
+	}
+	c.JSON(http.StatusOK, response)
+}
+
+// ResetPasswordWithOTPHandler handles password reset with OTP
+func ResetPasswordWithOTPHandler(c *gin.Context) {
+	var req ResetPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request format",
+		})
+		return
+	}
+
+	// Reset password
+	err := ResetPasswordWithOTP(req.Email, req.OTP, req.NewPassword)
+	if err != nil {
+		if customErr, ok := err.(*common.CustomError); ok {
+			c.JSON(customErr.Code, gin.H{
+				"error": customErr.Message,
+			})
+			return
+		}
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Email không tồn tại trong hệ thống",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to reset password",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Đặt lại mật khẩu thành công",
+	})
+}

@@ -103,6 +103,9 @@ func main() {
 		{
 			auth.POST("/register", users.Register)
 			auth.POST("/login", users.Login)
+			auth.POST("/forgot-password", users.ForgotPassword)
+			auth.POST("/verify-otp", users.VerifyOTPHandler)
+			auth.POST("/reset-password", users.ResetPasswordWithOTPHandler)
 		}
 
 		// Public routes (no auth required)

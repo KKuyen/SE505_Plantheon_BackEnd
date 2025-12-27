@@ -24,6 +24,13 @@ type User struct {
 	Avatar    string    `json:"avatar"`
 	Role      UserRole  `json:"role" gorm:"type:varchar(20);default:'user';not null"`
 	IsActive  bool      `json:"is_active" gorm:"default:true;not null"`
+	
+	// OTP fields for password reset
+	OTPCode        *string    `json:"-" gorm:"type:varchar(6)"`
+	OTPExpiry      *time.Time `json:"-"`
+	OTPAttempts    int        `json:"-" gorm:"default:0"`
+	LastOTPRequest *time.Time `json:"-"`
+	
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
