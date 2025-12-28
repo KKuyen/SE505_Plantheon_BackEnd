@@ -80,6 +80,13 @@ func ValidateCreateActivityRequest(req *CreateActivityRequest) error {
 		return errors.New("amount must be non-negative")
 	}
 
+	// Validate that TimeStart is before TimeEnd
+	if req.TimeStart != nil && req.TimeEnd != nil {
+		if req.TimeStart.After(*req.TimeEnd) {
+			return errors.New("time_start must be before time_end")
+		}
+	}
+
 	return nil
 }
 
@@ -152,6 +159,13 @@ func ValidateUpdateActivityRequest(req *UpdateActivityRequest) error {
 
 	if req.Amount != nil && *req.Amount < 0 {
 		return errors.New("amount must be non-negative")
+	}
+
+	// Validate that TimeStart is before TimeEnd
+	if req.TimeStart != nil && req.TimeEnd != nil {
+		if req.TimeStart.After(*req.TimeEnd) {
+			return errors.New("time_start must be before time_end")
+		}
 	}
 
 	return nil
