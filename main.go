@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"strings"
 
 	"plantheon-backend/common"
 	"plantheon-backend/models/activities"
@@ -25,6 +26,18 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
+
+// splitAndTrim splits a string by separator and trims whitespace from each part
+func splitAndTrim(s, sep string) []string {
+	parts := strings.Split(s, sep)
+	result := make([]string, 0, len(parts))
+	for _, p := range parts {
+		if trimmed := strings.TrimSpace(p); trimmed != "" {
+			result = append(result, trimmed)
+		}
+	}
+	return result
+}
 
 func main() {
 	// Load environment variables from .env file
@@ -62,23 +75,60 @@ func main() {
 	// Set up Gin router
 	router := gin.Default()
 
-	// CORS middleware
+	// CORS middleware - Fixed for production deployment
 	router.Use(func(c *gin.Context) {
 		origin := c.GetHeader("Origin")
+		
+		// Define allowed origins (add your frontend domains here)
 		allowedOrigins := map[string]bool{
-			"http://localhost:8000": true,
-			"http://127.0.0.1:8000": true,
+			"http://localhost:8000":            true,
+			"http://127.0.0.1:8000":            true,
+			"http://localhost:3000":            true,
+			"http://127.0.0.1:3000":            true,
+			"http://localhost:5173":            true, // Vite default
+			"http://127.0.0.1:5173":            true,
+			"https://se505-admin.vercel.app":   true, // Production frontend
 		}
-		if allowedOrigins[origin] {
+		
+		// Check environment variable for production frontend URL
+		if prodOrigin := os.Getenv("ALLOWED_ORIGIN"); prodOrigin != "" {
+			allowedOrigins[prodOrigin] = true
+		}
+		
+		// Also support comma-separated list of origins
+		if origins := os.Getenv("ALLOWED_ORIGINS"); origins != "" {
+			for _, o := range splitAndTrim(origins, ",") {
+				allowedOrigins[o] = true
+			}
+		}
+
+		// Check if origin is allowed (including Vercel preview deployments)
+		isAllowed := allowedOrigins[origin]
+		
+		// Support Vercel preview URLs (se505-admin-*.vercel.app)
+		if !isAllowed && origin != "" && strings.HasSuffix(origin, ".vercel.app") {
+			// Allow any subdomain of vercel.app that starts with se505-admin
+			if strings.Contains(origin, "se505-admin") {
+				isAllowed = true
+			}
+		}
+
+		// Set CORS headers based on origin
+		if origin != "" && isAllowed {
 			c.Header("Access-Control-Allow-Origin", origin)
-		} else {
-			c.Header("Access-Control-Allow-Origin", "*")
+			c.Header("Access-Control-Allow-Credentials", "true")
+		} else if origin != "" {
+			// For unknown origins, allow without credentials (public API)
+			c.Header("Access-Control-Allow-Origin", origin)
+			// Don't set Allow-Credentials for unknown origins
 		}
 
-		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Authorization")
-		c.Header("Access-Control-Allow-Credentials", "true")
+		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD")
+		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Content-Length, Accept, Accept-Encoding, Authorization, X-Requested-With, X-CSRF-Token")
+		c.Header("Access-Control-Expose-Headers", "Content-Length, Content-Type, Authorization")
+		c.Header("Access-Control-Max-Age", "86400") // Cache preflight for 24 hours
 
+		// Handle preflight requests
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(204)
 			return
