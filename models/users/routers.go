@@ -16,7 +16,7 @@ func Register(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request format",
+			"error": "Định dạng yêu cầu không hợp lệ",
 		})
 		return
 	}
@@ -32,7 +32,7 @@ func Register(c *gin.Context) {
 	// Check if email already exists
 	if _, err := GetUserByEmail(req.Email); err == nil {
 		c.JSON(http.StatusConflict, gin.H{
-			"error": "Email already exists",
+			"error": "Email đã tồn tại",
 		})
 		return
 	}
@@ -40,7 +40,7 @@ func Register(c *gin.Context) {
 	// Check if username already exists
 	if _, err := GetUserByUsername(req.Username); err == nil {
 		c.JSON(http.StatusConflict, gin.H{
-			"error": "Username already exists",
+			"error": "Tên người dùng đã tồn tại",
 		})
 		return
 	}
@@ -59,20 +59,20 @@ func Register(c *gin.Context) {
 		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
 			if strings.Contains(err.Error(), "users_email_key") {
 				c.JSON(http.StatusConflict, gin.H{
-					"error": "Email already exists",
+					"error": "Email đã tồn tại",
 				})
 			} else if strings.Contains(err.Error(), "users_username_key") {
 				c.JSON(http.StatusConflict, gin.H{
-					"error": "Username already exists",
+					"error": "Tên người dùng đã tồn tại",
 				})
 			} else {
 				c.JSON(http.StatusConflict, gin.H{
-					"error": "User already exists",
+					"error": "Người dùng đã tồn tại",
 				})
 			}
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Failed to create user",
+				"error": "Tạo người dùng thất bại",
 			})
 		}
 		return
@@ -82,7 +82,7 @@ func Register(c *gin.Context) {
 	token, err := common.GenerateJWT(user.ID, user.Email, string(user.Role))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to generate token",
+			"error": "Tạo token thất bại",
 		})
 		return
 	}
@@ -94,7 +94,7 @@ func Register(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"message": "User created successfully",
+		"message": "Tạo người dùng thành công",
 		"data":    response,
 	})
 }
@@ -104,7 +104,7 @@ func Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request format",
+			"error": "Định dạng yêu cầu không hợp lệ",
 		})
 		return
 	}
@@ -114,12 +114,12 @@ func Login(c *gin.Context) {
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Invalid email or password",
+				"error": "Email hoặc mật khẩu không đúng",
 			})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to find user",
+			"error": "Tìm người dùng thất bại",
 		})
 		return
 	}
@@ -127,7 +127,7 @@ func Login(c *gin.Context) {
 	// Check password
 	if !common.CheckPasswordHash(req.Password, user.Password) {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "Invalid email or password",
+			"error": "Email hoặc mật khẩu không đúng",
 		})
 		return
 	}
@@ -144,7 +144,7 @@ func Login(c *gin.Context) {
 	token, err := common.GenerateJWT(user.ID, user.Email, string(user.Role))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to generate token",
+			"error": "Tạo token thất bại",
 		})
 		return
 	}
@@ -156,7 +156,7 @@ func Login(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Login successful",
+		"message": "Đăng nhập thành công",
 		"data":    response,
 	})
 }
@@ -166,7 +166,7 @@ func GetProfile(c *gin.Context) {
 	user, exists := GetCurrentUser(c)
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User not found in context",
+			"error": "Không tìm thấy người dùng",
 		})
 		return
 	}
@@ -181,7 +181,7 @@ func UpdateProfile(c *gin.Context) {
 	user, exists := GetCurrentUser(c)
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User not found in context",
+			"error": "Không tìm thấy người dùng",
 		})
 		return
 	}
@@ -189,7 +189,7 @@ func UpdateProfile(c *gin.Context) {
 	var req UpdateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request format",
+			"error": "Định dạng yêu cầu không hợp lệ",
 		})
 		return
 	}
@@ -216,13 +216,13 @@ func UpdateProfile(c *gin.Context) {
 	// Save updated user
 	if err := UpdateUser(user); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to update user",
+			"error": "Cập nhật người dùng thất bại",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Profile updated successfully",
+		"message": "Cập nhật hồ sơ thành công",
 		"data":    user.ToUserResponse(),
 	})
 }
@@ -235,7 +235,7 @@ func GetAllUsers(c *gin.Context) {
 	page, err := strconv.Atoi(pageStr)
 	if err != nil || page < 1 {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid page parameter",
+			"error": "Tham số trang không hợp lệ",
 		})
 		return
 	}
@@ -243,7 +243,7 @@ func GetAllUsers(c *gin.Context) {
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil || limit < 1 {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid limit parameter",
+			"error": "Tham số giới hạn không hợp lệ",
 		})
 		return
 	}
@@ -251,7 +251,7 @@ func GetAllUsers(c *gin.Context) {
 	users, total, err := ListUsers(page, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to fetch users",
+			"error": "Lấy danh sách người dùng thất bại",
 		})
 		return
 	}
@@ -278,13 +278,13 @@ func GetUserByIDHandler(c *gin.Context) {
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusNotFound, gin.H{
-				"error": "User not found",
+				"error": "Không tìm thấy người dùng",
 			})
 			return
 		}
 
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to fetch user",
+			"error": "Lấy thông tin người dùng thất bại",
 		})
 		return
 	}
@@ -301,13 +301,13 @@ func DisableUserHandler(c *gin.Context) {
 	if _, err := GetUserByID(userID); err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusNotFound, gin.H{
-				"error": "User not found",
+				"error": "Không tìm thấy người dùng",
 			})
 			return
 		}
 
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to fetch user",
+			"error": "Lấy thông tin người dùng thất bại",
 		})
 		return
 	}
@@ -315,19 +315,19 @@ func DisableUserHandler(c *gin.Context) {
 	if err := DisableUser(userID); err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusNotFound, gin.H{
-				"error": "User not found",
+				"error": "Không tìm thấy người dùng",
 			})
 			return
 		}
 
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to disable user",
+			"error": "Vô hiệu hóa người dùng thất bại",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "User has been disabled successfully",
+		"message": "Vô hiệu hóa người dùng thành công",
 	})
 }
 
@@ -338,13 +338,13 @@ func EnableUserHandler(c *gin.Context) {
 	if _, err := GetUserByID(userID); err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusNotFound, gin.H{
-				"error": "User not found",
+				"error": "Không tìm thấy người dùng",
 			})
 			return
 		}
 
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to fetch user",
+			"error": "Lấy thông tin người dùng thất bại",
 		})
 		return
 	}
@@ -352,19 +352,19 @@ func EnableUserHandler(c *gin.Context) {
 	if err := EnableUser(userID); err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusNotFound, gin.H{
-				"error": "User not found",
+				"error": "Không tìm thấy người dùng",
 			})
 			return
 		}
 
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to enable user",
+			"error": "Kích hoạt người dùng thất bại",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "User has been enabled successfully",
+		"message": "Kích hoạt người dùng thành công",
 	})
 }
 
@@ -375,7 +375,7 @@ func UpdateUserByAdminHandler(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request format",
+			"error": "Định dạng yêu cầu không hợp lệ",
 		})
 		return
 	}
@@ -384,12 +384,12 @@ func UpdateUserByAdminHandler(c *gin.Context) {
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusNotFound, gin.H{
-				"error": "User not found",
+				"error": "Không tìm thấy người dùng",
 			})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to fetch user",
+			"error": "Lấy thông tin người dùng thất bại",
 		})
 		return
 	}
@@ -405,7 +405,7 @@ func UpdateUserByAdminHandler(c *gin.Context) {
 		// Check duplicate email (excluding current user)
 		if existing, err := GetUserByEmail(req.Email); err == nil && existing.ID != userID {
 			c.JSON(http.StatusConflict, gin.H{
-				"error": "Email already exists",
+				"error": "Email đã tồn tại",
 			})
 			return
 		}
@@ -422,7 +422,7 @@ func UpdateUserByAdminHandler(c *gin.Context) {
 		}
 		if existing, err := GetUserByUsername(req.Username); err == nil && existing.ID != userID {
 			c.JSON(http.StatusConflict, gin.H{
-				"error": "Username already exists",
+				"error": "Tên người dùng đã tồn tại",
 			})
 			return
 		}
@@ -434,7 +434,7 @@ func UpdateUserByAdminHandler(c *gin.Context) {
 		fullName := strings.TrimSpace(req.FullName)
 		if len(fullName) > 100 {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Full name must be less than 100 characters",
+				"error": "Họ tên phải ít hơn 100 ký tự",
 			})
 			return
 		}
@@ -448,13 +448,13 @@ func UpdateUserByAdminHandler(c *gin.Context) {
 
 	if err := UpdateUser(user); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to update user",
+			"error": "Cập nhật người dùng thất bại",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "User updated successfully",
+		"message": "Cập nhật người dùng thành công",
 		"data":    user.ToUserResponse(),
 	})
 }
@@ -464,7 +464,7 @@ func ForgotPassword(c *gin.Context) {
 	var req ForgotPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request format",
+			"error": "Định dạng yêu cầu không hợp lệ",
 		})
 		return
 	}
@@ -485,7 +485,7 @@ func ForgotPassword(c *gin.Context) {
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to send OTP",
+			"error": "Gửi OTP thất bại",
 		})
 		return
 	}
@@ -501,7 +501,7 @@ func VerifyOTPHandler(c *gin.Context) {
 	var req VerifyOTPRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request format",
+			"error": "Định dạng yêu cầu không hợp lệ",
 		})
 		return
 	}
@@ -522,7 +522,7 @@ func VerifyOTPHandler(c *gin.Context) {
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to verify OTP",
+			"error": "Xác thực OTP thất bại",
 		})
 		return
 	}
@@ -549,7 +549,7 @@ func ResetPasswordWithOTPHandler(c *gin.Context) {
 	var req ResetPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request format",
+			"error": "Định dạng yêu cầu không hợp lệ",
 		})
 		return
 	}
@@ -570,7 +570,7 @@ func ResetPasswordWithOTPHandler(c *gin.Context) {
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to reset password",
+			"error": "Đặt lại mật khẩu thất bại",
 		})
 		return
 	}

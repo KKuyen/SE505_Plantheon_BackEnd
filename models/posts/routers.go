@@ -19,7 +19,7 @@ func CreatePostHandler(c *gin.Context) {
 	userInterface, exists := c.Get("user")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User not found in context",
+			"error": "Không tìm thấy người dùng",
 		})
 		return
 	}
@@ -27,7 +27,7 @@ func CreatePostHandler(c *gin.Context) {
 	user, ok := userInterface.(*users.User)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Invalid user format",
+			"error": "Định dạng người dùng không hợp lệ",
 		})
 		return
 	}
@@ -36,7 +36,7 @@ func CreatePostHandler(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Printf("ERROR - Failed to bind JSON: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request",
+			"error": "Yêu cầu không hợp lệ",
 			"details": err.Error(),
 		})
 		return
@@ -64,14 +64,14 @@ func CreatePostHandler(c *gin.Context) {
 	if err := CreatePost(post); err != nil {
 		log.Printf("ERROR - Failed to create post in database: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to create post",
+			"error": "Tạo bài viết thất bại",
 			"details": err.Error(),
 		})
 		return
 	}
 	
 	c.JSON(http.StatusCreated, gin.H{
-		"message": "Post created successfully",
+		"message": "Tạo bài viết thành công",
 		"data": gin.H{
 			"id":        post.ID,
 			"user_id":   post.UserID,
@@ -97,7 +97,7 @@ func UpdatePostHandler(c *gin.Context) {
 	userInterface, exists := c.Get("user")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User not found in context",
+			"error": "Không tìm thấy người dùng",
 		})
 		return
 	}
@@ -105,14 +105,14 @@ func UpdatePostHandler(c *gin.Context) {
 	user, ok := userInterface.(*users.User)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Invalid user format",
+			"error": "Định dạng người dùng không hợp lệ",
 		})
 		return
 	}
 	var req CreatePostRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request",
+			"error": "Yêu cầu không hợp lệ",
 		})
 		return
 	}
@@ -140,7 +140,7 @@ func UpdatePostHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Post updated successfully",
+		"message": "Cập nhật bài viết thành công",
 		"data": gin.H{
 			"id":        post.ID,
 			"content":   post.Content,
@@ -178,7 +178,7 @@ func GetPostsHandler(c *gin.Context) {
 	posts, total, err := GetAllPosts(viewerID, page, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get posts",
+			"error": "Lấy danh sách bài viết thất bại",
 		})
 		return
 	}
@@ -210,7 +210,7 @@ func SearchPostsHandler(c *gin.Context) {
 	keyword := c.Query("keyword")
 	if keyword == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "keyword is required",
+			"error": "Cần có từ khóa tìm kiếm",
 		})
 		return
 	}
@@ -231,7 +231,7 @@ func SearchPostsHandler(c *gin.Context) {
 	posts, total, err := SearchPosts(keyword, viewerID, page, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to search posts",
+			"error": "Tìm kiếm bài viết thất bại",
 		})
 		return
 	}
@@ -292,7 +292,7 @@ func DeletePostByIDHandler(c *gin.Context) {
 	userInterface, exists := c.Get("user")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User not found in context",
+			"error": "Không tìm thấy người dùng",
 		})
 		return
 	}
@@ -300,7 +300,7 @@ func DeletePostByIDHandler(c *gin.Context) {
 	user, ok := userInterface.(*users.User)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Invalid user format",
+			"error": "Định dạng người dùng không hợp lệ",
 		})
 		return
 	}
@@ -310,7 +310,7 @@ func DeletePostByIDHandler(c *gin.Context) {
 	if err != nil {
 		log.Printf("ERROR - Failed to get post %s: %v", id, err)
 		c.JSON(http.StatusNotFound, gin.H{
-			"error": "Post not found",
+			"error": "Không tìm thấy bài viết",
 		})
 		return
 	}
@@ -319,7 +319,7 @@ func DeletePostByIDHandler(c *gin.Context) {
 	if post.UserID != user.ID {
 		log.Printf("WARNING - User %s attempted to delete post %s owned by %s", user.ID, id, post.UserID)
 		c.JSON(http.StatusForbidden, gin.H{
-			"error": "You don't have permission to delete this post",
+			"error": "Bạn không có quyền xóa bài viết này",
 		})
 		return
 	}
@@ -327,7 +327,7 @@ func DeletePostByIDHandler(c *gin.Context) {
 	if err := DeletePostByID(id); err != nil {
 		log.Printf("ERROR - Failed to delete post %s: %v", id, err)
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to delete post",
+			"error": "Xóa bài viết thất bại",
 			"details": err.Error(),
 		})
 		return
@@ -335,7 +335,7 @@ func DeletePostByIDHandler(c *gin.Context) {
 
 	log.Printf("INFO - Post %s deleted successfully by user %s", id, user.ID)
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Post deleted successfully",
+		"message": "Xóa bài viết thành công",
 	})
 }
 
@@ -352,7 +352,7 @@ func LikePostHandler(c *gin.Context) {
 	userInterface, exists := c.Get("user")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User not found in context",
+			"error": "Không tìm thấy người dùng",
 		})
 		return
 	}
@@ -360,7 +360,7 @@ func LikePostHandler(c *gin.Context) {
 	user, ok := userInterface.(*users.User)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Invalid user format",
+			"error": "Định dạng người dùng không hợp lệ",
 		})
 		return
 	}
@@ -372,7 +372,7 @@ func LikePostHandler(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Post liked successfully",
+		"message": "Thích bài viết thành công",
 	})
 }
 
@@ -389,7 +389,7 @@ func UnlikePostHandler(c *gin.Context) {
 	userInterface, exists := c.Get("user")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User not found in context",
+			"error": "Không tìm thấy người dùng",
 		})
 		return
 	}
@@ -397,7 +397,7 @@ func UnlikePostHandler(c *gin.Context) {
 	user, ok := userInterface.(*users.User)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Invalid user format",
+			"error": "Định dạng người dùng không hợp lệ",
 		})
 		return
 	}
@@ -409,7 +409,7 @@ func UnlikePostHandler(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Post unliked successfully",
+		"message": "Bỏ thích bài viết thành công",
 	})
 }
 
@@ -428,7 +428,7 @@ func SharePostHandler(c *gin.Context) {
 		return
 	}	
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Post shared successfully",
+		"message": "Chia sẻ bài viết thành công",
 	})
 }
 
@@ -479,7 +479,7 @@ func GetPublicUserProfileWithPostsHandler(c *gin.Context) {
 	if authHeader != "" {
 		if !strings.HasPrefix(authHeader, "Bearer ") {
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Invalid authorization header format",
+				"error": "Định dạng header xác thực không hợp lệ",
 			})
 			return
 		}
@@ -487,7 +487,7 @@ func GetPublicUserProfileWithPostsHandler(c *gin.Context) {
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 		if tokenString == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Token is required",
+				"error": "Cần có token",
 			})
 			return
 		}
@@ -495,7 +495,7 @@ func GetPublicUserProfileWithPostsHandler(c *gin.Context) {
 		claims, err := common.ValidateJWT(tokenString)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Invalid token",
+				"error": "Token không hợp lệ",
 			})
 			return
 		}
@@ -507,12 +507,12 @@ func GetPublicUserProfileWithPostsHandler(c *gin.Context) {
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusNotFound, gin.H{
-				"error": "User not found",
+				"error": "Không tìm thấy người dùng",
 			})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get user",
+			"error": "Lấy thông tin người dùng thất bại",
 		})
 		return
 	}
@@ -520,7 +520,7 @@ func GetPublicUserProfileWithPostsHandler(c *gin.Context) {
 	posts, err := GetPublicPostsByUserID(userId, viewerID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get posts",
+			"error": "Lấy danh sách bài viết thất bại",
 		})
 		return
 	}
@@ -540,7 +540,7 @@ func GetMyPostsHandler(c *gin.Context) {
 	userInterface, exists := c.Get("user")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User not found in context",
+			"error": "Không tìm thấy người dùng",
 		})
 		return
 	}
@@ -548,7 +548,7 @@ func GetMyPostsHandler(c *gin.Context) {
 	user, ok := userInterface.(*users.User)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Invalid user format",
+			"error": "Định dạng người dùng không hợp lệ",
 		})
 		return
 	}
@@ -558,7 +558,7 @@ func GetMyPostsHandler(c *gin.Context) {
 	if err != nil {
 		log.Printf("ERROR - Failed to get posts for user %s: %v", user.ID, err)
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get posts",
+			"error": "Lấy danh sách bài viết thất bại",
 			"details": err.Error(),
 		})
 		return
@@ -583,29 +583,29 @@ func AdminUpdatePostIsDeletedHandler(c *gin.Context) {
 		IsDeleted bool `json:"is_deleted"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Định dạng yêu cầu không hợp lệ"})
 		return
 	}
 
 	// Check if post exists
 	post, err := GetPostByIDAdmin(postID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Không tìm thấy bài viết"})
 		return
 	}
 
 	if err := UpdatePostIsDeleted(postID, req.IsDeleted); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update post"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Cập nhật bài viết thất bại"})
 		return
 	}
 
-	action := "restored"
+	action := "khôi phục"
 	if req.IsDeleted {
-		action = "deleted"
+		action = "xóa"
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-"message": "Post " + action + " successfully",
+"message": "Bài viết đã được " + action + " thành công",
 "data": gin.H{
 "id":         post.ID,
 "is_deleted": req.IsDeleted,
@@ -623,7 +623,7 @@ func AdminGetPostByIDHandler(c *gin.Context) {
 
 	post, err := GetPostByIDAdmin(postID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Không tìm thấy bài viết"})
 		return
 	}
 

@@ -15,7 +15,7 @@ func CreateScanHistoryHandler(c *gin.Context) {
 	var req CreateScanHistoryRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request format",
+			"error": "Định dạng yêu cầu không hợp lệ",
 		})
 		return
 	}
@@ -32,7 +32,7 @@ func CreateScanHistoryHandler(c *gin.Context) {
 	userInterface, exists := c.Get("user")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User not found in context",
+			"error": "Không tìm thấy người dùng",
 		})
 		return
 	}
@@ -40,7 +40,7 @@ func CreateScanHistoryHandler(c *gin.Context) {
 	user, ok := userInterface.(*users.User)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Invalid user format",
+			"error": "Định dạng người dùng không hợp lệ",
 		})
 		return
 	}
@@ -53,13 +53,13 @@ func CreateScanHistoryHandler(c *gin.Context) {
 
 	if err := CreateScanHistoryRecord(scanHistory); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to create scan history",
+			"error": "Tạo lịch sử quét thất bại",
 		})
 		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"message": "Scan history created successfully",
+		"message": "Tạo lịch sử quét thành công",
 		"data":    scanHistory.ToScanHistoryResponse(),
 	})
 }
@@ -70,7 +70,7 @@ func GetScanHistoriesHandler(c *gin.Context) {
 	userInterface, exists := c.Get("user")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User not found in context",
+			"error": "Không tìm thấy người dùng",
 		})
 		return
 	}
@@ -78,7 +78,7 @@ func GetScanHistoriesHandler(c *gin.Context) {
 	user, ok := userInterface.(*users.User)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Invalid user format",
+			"error": "Định dạng người dùng không hợp lệ",
 		})
 		return
 	}
@@ -89,7 +89,7 @@ func GetScanHistoriesHandler(c *gin.Context) {
 		var errParse error
 		size, errParse = strconv.Atoi(sizeParam)
 		if errParse != nil || size < 0 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid size parameter"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Tham số size không hợp lệ"})
 			return
 		}
 	}
@@ -98,7 +98,7 @@ func GetScanHistoriesHandler(c *gin.Context) {
 	scanHistories, err := GetScanHistoriesByUserID(user.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get scan histories"})
+			"error": "Lấy danh sách lịch sử quét thất bại"})
 		return
 	}
 
@@ -117,7 +117,7 @@ func GetScanHistoryByIDHandler(c *gin.Context) {
 	userInterface, exists := c.Get("user")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User not found in context",
+			"error": "Không tìm thấy người dùng",
 		})
 		return
 	}
@@ -125,7 +125,7 @@ func GetScanHistoryByIDHandler(c *gin.Context) {
 	user, ok := userInterface.(*users.User)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Invalid user format",
+			"error": "Định dạng người dùng không hợp lệ",
 		})
 		return
 	}
@@ -133,7 +133,7 @@ func GetScanHistoryByIDHandler(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "ID is required",
+			"error": "Cần có ID",
 		})
 		return
 	}
@@ -142,12 +142,12 @@ func GetScanHistoryByIDHandler(c *gin.Context) {
 	if err != nil {
 		if err.Error() == "record not found" {
 			c.JSON(http.StatusNotFound, gin.H{
-				"error": "Scan history not found",
+				"error": "Không tìm thấy lịch sử quét",
 			})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get scan history",
+			"error": "Lấy lịch sử quét thất bại",
 		})
 		return
 	}
@@ -155,7 +155,7 @@ func GetScanHistoryByIDHandler(c *gin.Context) {
 	// Verify that the scan history belongs to the authenticated user
 	if scanHistory.UserID != user.ID {
 		c.JSON(http.StatusForbidden, gin.H{
-			"error": "You do not have permission to access this scan history",
+			"error": "Bạn không có quyền truy cập lịch sử quét này",
 		})
 		return
 	}
@@ -171,7 +171,7 @@ func DeleteScanHistoryByIDHandler(c *gin.Context) {
 	userInterface, exists := c.Get("user")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User not found in context",
+			"error": "Không tìm thấy người dùng",
 		})
 		return
 	}
@@ -179,7 +179,7 @@ func DeleteScanHistoryByIDHandler(c *gin.Context) {
 	user, ok := userInterface.(*users.User)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Invalid user format",
+			"error": "Định dạng người dùng không hợp lệ",
 		})
 		return
 	}
@@ -187,7 +187,7 @@ func DeleteScanHistoryByIDHandler(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "ID is required",
+			"error": "Cần có ID",
 		})
 		return
 	}
@@ -197,12 +197,12 @@ func DeleteScanHistoryByIDHandler(c *gin.Context) {
 	if err != nil {
 		if err.Error() == "record not found" {
 			c.JSON(http.StatusNotFound, gin.H{
-				"error": "Scan history not found",
+				"error": "Không tìm thấy lịch sử quét",
 			})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get scan history",
+			"error": "Lấy lịch sử quét thất bại",
 		})
 		return
 	}
@@ -210,7 +210,7 @@ func DeleteScanHistoryByIDHandler(c *gin.Context) {
 	// Verify that the scan history belongs to the authenticated user
 	if scanHistory.UserID != user.ID {
 		c.JSON(http.StatusForbidden, gin.H{
-			"error": "You do not have permission to delete this scan history",
+			"error": "Bạn không có quyền xóa lịch sử quét này",
 		})
 		return
 	}
@@ -219,13 +219,13 @@ func DeleteScanHistoryByIDHandler(c *gin.Context) {
 	err = DeleteScanHistoryByID(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to delete scan history",
+			"error": "Xóa lịch sử quét thất bại",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Scan history deleted successfully",
+		"message": "Xóa lịch sử quét thành công",
 	})
 }
 
@@ -235,7 +235,7 @@ func DeleteAllScanHistoriesHandler(c *gin.Context) {
 	userInterface, exists := c.Get("user")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User not found in context",
+			"error": "Không tìm thấy người dùng",
 		})
 		return
 	}
@@ -243,7 +243,7 @@ func DeleteAllScanHistoriesHandler(c *gin.Context) {
 	user, ok := userInterface.(*users.User)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Invalid user format",
+			"error": "Định dạng người dùng không hợp lệ",
 		})
 		return
 	}
@@ -252,12 +252,12 @@ func DeleteAllScanHistoriesHandler(c *gin.Context) {
 	err := DeleteScanHistoriesByUserID(user.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to delete all scan histories",
+			"error": "Xóa tất cả lịch sử quét thất bại",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "All scan histories deleted successfully",
+		"message": "Xóa tất cả lịch sử quét thành công",
 	})
 }

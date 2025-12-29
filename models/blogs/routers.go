@@ -17,7 +17,7 @@ func GetNewsHandler(c *gin.Context) {
 		parsed, err := strconv.Atoi(sizeParam)
 		if err != nil || parsed <= 0 {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "size must be a positive integer",
+				"error": "size phải là số nguyên dương",
 			})
 			return
 		}
@@ -36,7 +36,7 @@ func GetNewsHandler(c *gin.Context) {
 	news, err := GetAllNews(size, includeAllStatuses)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get news",
+			"error": "Lấy danh sách tin tức thất bại",
 		})
 		return
 	}
@@ -73,7 +73,7 @@ func CreateNewsHandler(c *gin.Context) {
 	userInterface, exists := c.Get("user")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User not found in context",
+			"error": "Không tìm thấy người dùng",
 		})
 		return
 	}
@@ -81,7 +81,7 @@ func CreateNewsHandler(c *gin.Context) {
 	user, ok := userInterface.(*users.User)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Invalid user format",
+			"error": "Định dạng người dùng không hợp lệ",
 		})
 		return
 	}
@@ -89,7 +89,7 @@ func CreateNewsHandler(c *gin.Context) {
 	var req CreateNewsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request",
+			"error": "Yêu cầu không hợp lệ",
 		})
 		return
 	}
@@ -116,7 +116,7 @@ func CreateNewsHandler(c *gin.Context) {
 	if blog.BlogTagID != nil {
 		if _, err := blog_tags.GetBlogTagByID(*blog.BlogTagID); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "blog_tag_id is invalid",
+				"error": "ID thẻ blog không hợp lệ",
 			})
 			return
 		}
@@ -129,13 +129,13 @@ func CreateNewsHandler(c *gin.Context) {
 
 	if err := CreateNews(blog); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to create news",
+			"error": "Tạo tin tức thất bại",
 		})
 		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"message": "News created successfully",
+		"message": "Tạo tin tức thành công",
 		"data": gin.H{
 			"id":              blog.ID,
 			"title":           blog.Title,
@@ -163,7 +163,7 @@ func UpdateNewsHandler(c *gin.Context) {
 	var req CreateNewsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request",
+			"error": "Yêu cầu không hợp lệ",
 		})
 		return
 	}
@@ -190,7 +190,7 @@ func UpdateNewsHandler(c *gin.Context) {
 	if blog.BlogTagID != nil {
 		if _, err := blog_tags.GetBlogTagByID(*blog.BlogTagID); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "blog_tag_id is invalid",
+				"error": "ID thẻ blog không hợp lệ",
 			})
 			return
 		}
@@ -213,7 +213,7 @@ func UpdateNewsHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "News updated successfully",
+		"message": "Cập nhật tin tức thành công",
 		"data": gin.H{
 			"id":              blog.ID,
 			"title":           blog.Title,
@@ -244,6 +244,6 @@ func DeleteNewsHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "News deleted successfully",
+		"message": "Xóa tin tức thành công",
 	})
 }

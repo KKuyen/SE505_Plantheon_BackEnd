@@ -14,7 +14,7 @@ func CreateActivityHandler(c *gin.Context) {
 	var req CreateActivityRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request format",
+			"error": "Định dạng yêu cầu không hợp lệ",
 		})
 		return
 	}
@@ -54,13 +54,13 @@ func CreateActivityHandler(c *gin.Context) {
 
 	if err := CreateActivityRecord(activity); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to create activity",
+			"error": "Tạo hoạt động thất bại",
 		})
 		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"message": "Activity created successfully",
+		"message": "Tạo hoạt động thành công",
 		"data":    activity.ToActivityResponse(),
 	})
 }
@@ -70,7 +70,7 @@ func GetActivity(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Activity ID is required",
+			"error": "Cần có ID hoạt động",
 		})
 		return
 	}
@@ -79,12 +79,12 @@ func GetActivity(c *gin.Context) {
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusNotFound, gin.H{
-				"error": "Activity not found",
+				"error": "Không tìm thấy hoạt động",
 			})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get activity",
+			"error": "Lấy thông tin hoạt động thất bại",
 		})
 		return
 	}
@@ -125,14 +125,14 @@ func GetActivities(c *gin.Context) {
 		selectedDate, err := time.Parse("2006-01-02", dateStr)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Invalid date format. Use YYYY-MM-DD",
+				"error": "Định dạng ngày không hợp lệ. Sử dụng YYYY-MM-DD",
 			})
 			return
 		}
 		activities, total, err = GetActivitiesByDateRangeWithPagination(selectedDate, offset, limit)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Failed to get activities",
+				"error": "Lấy danh sách hoạt động thất bại",
 			})
 			return
 		}
@@ -140,7 +140,7 @@ func GetActivities(c *gin.Context) {
 		activities, total, err = SearchActivities(search, offset, limit)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Failed to get activities",
+				"error": "Lấy danh sách hoạt động thất bại",
 			})
 			return
 		}
@@ -148,7 +148,7 @@ func GetActivities(c *gin.Context) {
 		activities, total, err = GetActivitiesByType(activityType, offset, limit)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Failed to get activities",
+				"error": "Lấy danh sách hoạt động thất bại",
 			})
 			return
 		}
@@ -156,7 +156,7 @@ func GetActivities(c *gin.Context) {
 		activities, total, err = GetAllActivities(offset, limit)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Failed to get activities",
+				"error": "Lấy danh sách hoạt động thất bại",
 			})
 			return
 		}
@@ -184,7 +184,7 @@ func GetAllActivitiesHandler(c *gin.Context) {
 		selectedDate, parseErr := time.Parse("2006-01-02", dateStr)
 		if parseErr != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Invalid date format. Use YYYY-MM-DD",
+				"error": "Định dạng ngày không hợp lệ. Sử dụng YYYY-MM-DD",
 			})
 			return
 		}
@@ -211,7 +211,7 @@ func GetAllActivitiesHandler(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get activities",
+			"error": "Lấy danh sách hoạt động thất bại",
 		})
 		return
 	}
@@ -251,7 +251,7 @@ func GetActivitiesCountHandler(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get activities count",
+			"error": "Lấy số lượng hoạt động thất bại",
 		})
 		return
 	}
@@ -268,19 +268,19 @@ func GetActivitiesCountHandler(c *gin.Context) {
 func GetActivitiesByDayHandler(c *gin.Context) {
     dateStr := c.Query("date")
     if dateStr == "" {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "date is required (YYYY-MM-DD)"})
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Cần có ngày (YYYY-MM-DD)"})
         return
     }
     day, err := time.Parse("2006-01-02", dateStr)
     if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid date format, expected YYYY-MM-DD"})
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Định dạng ngày không hợp lệ, mong muốn YYYY-MM-DD"})
         return
     }
 
     // Use the new date range filter: time_start <= date AND time_end >= date
     activities, err := GetActivitiesByDateRange(day)
     if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get activities"})
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Lấy danh sách hoạt động thất bại"})
         return
     }
 
@@ -307,26 +307,26 @@ func GetActivitiesCalendarByMonthHandler(c *gin.Context) {
 
     if yearStr == "" || monthStr == "" {
         c.JSON(http.StatusBadRequest, gin.H{
-            "error": "year and month are required",
+            "error": "Cần có năm và tháng",
         })
         return
     }
 
     year, err := strconv.Atoi(yearStr)
     if err != nil || year < 1 {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid year"})
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Năm không hợp lệ"})
         return
     }
     month, err := strconv.Atoi(monthStr)
     if err != nil || month < 1 || month > 12 {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid month"})
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Tháng không hợp lệ"})
         return
     }
 
     // Get all activities in month
     acts, err := GetActivitiesByMonthYear(year, month)
     if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get activities"})
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Lấy danh sách hoạt động thất bại"})
         return
     }
 
@@ -334,7 +334,7 @@ func GetActivitiesCalendarByMonthHandler(c *gin.Context) {
     var allRecurringActivities []Activity
     err = GetAllRecurringActivities(&allRecurringActivities)
     if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get recurring activities"})
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Lấy danh sách hoạt động lặp lại thất bại"})
         return
     }
 
@@ -421,7 +421,7 @@ func UpdateActivityHandler(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Activity ID is required",
+			"error": "Cần có ID hoạt động",
 		})
 		return
 	}
@@ -431,12 +431,12 @@ func UpdateActivityHandler(c *gin.Context) {
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusNotFound, gin.H{
-				"error": "Activity not found",
+				"error": "Không tìm thấy hoạt động",
 			})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get activity",
+			"error": "Lấy thông tin hoạt động thất bại",
 		})
 		return
 	}
@@ -526,13 +526,13 @@ func UpdateActivityHandler(c *gin.Context) {
 	// Save updated activity
 	if err := UpdateActivity(activity); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to update activity",
+			"error": "Cập nhật hoạt động thất bại",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Activity updated successfully",
+		"message": "Cập nhật hoạt động thành công",
 		"data":    activity.ToActivityResponse(),
 	})
 }
@@ -542,7 +542,7 @@ func DeleteActivityHandler(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Activity ID is required",
+			"error": "Cần có ID hoạt động",
 		})
 		return
 	}
@@ -552,12 +552,12 @@ func DeleteActivityHandler(c *gin.Context) {
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusNotFound, gin.H{
-				"error": "Activity not found",
+				"error": "Không tìm thấy hoạt động",
 			})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get activity",
+			"error": "Lấy thông tin hoạt động thất bại",
 		})
 		return
 	}
@@ -565,13 +565,13 @@ func DeleteActivityHandler(c *gin.Context) {
 	// Delete activity
 	if err := DeleteActivity(id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to delete activity",
+			"error": "Xóa hoạt động thất bại",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Activity deleted successfully",
+		"message": "Xóa hoạt động thành công",
 	})
 }
 
@@ -579,7 +579,7 @@ func DeleteActivityHandler(c *gin.Context) {
 func DeleteActivitiesHandler(c *gin.Context) {
 	var req DeleteActivitiesRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Định dạng yêu cầu không hợp lệ"})
 		return
 	}
 
@@ -590,12 +590,12 @@ func DeleteActivitiesHandler(c *gin.Context) {
 
 	deleted, err := DeleteActivities(req.IDs)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete activities"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Xóa hoạt động thất bại"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Activities deleted successfully",
+		"message": "Xóa hoạt động thành công",
 		"deleted": deleted,
 	})
 }
@@ -608,27 +608,27 @@ func GetMonthlyFinancialSummaryHandler(c *gin.Context) {
 
 	if yearStr == "" || monthStr == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "year and month are required",
+			"error": "Cần có năm và tháng",
 		})
 		return
 	}
 
 	year, err := strconv.Atoi(yearStr)
 	if err != nil || year < 1 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid year"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Năm không hợp lệ"})
 		return
 	}
 
 	month, err := strconv.Atoi(monthStr)
 	if err != nil || month < 1 || month > 12 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid month, must be 1-12"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Tháng không hợp lệ, phải từ 1-12"})
 		return
 	}
 
 	summary, err := GetMonthlyFinancialSummary(year, month)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get financial summary",
+			"error": "Lấy báo cáo tài chính thất bại",
 		})
 		return
 	}
@@ -645,21 +645,21 @@ func GetAnnualFinancialSummaryHandler(c *gin.Context) {
 
 	if yearStr == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "year is required",
+			"error": "Cần có năm",
 		})
 		return
 	}
 
 	year, err := strconv.Atoi(yearStr)
 	if err != nil || year < 1 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid year"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Năm không hợp lệ"})
 		return
 	}
 
 	summary, err := GetAnnualFinancialSummary(year)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get annual financial summary",
+			"error": "Lấy báo cáo tài chính năm thất bại",
 		})
 		return
 	}
@@ -677,27 +677,27 @@ func GetMultiYearFinancialSummaryHandler(c *gin.Context) {
 
 	if startYearStr == "" || endYearStr == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "start_year and end_year are required",
+			"error": "Cần có năm bắt đầu và năm kết thúc",
 		})
 		return
 	}
 
 	startYear, err := strconv.Atoi(startYearStr)
 	if err != nil || startYear < 1 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid start_year"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Năm bắt đầu không hợp lệ"})
 		return
 	}
 
 	endYear, err := strconv.Atoi(endYearStr)
 	if err != nil || endYear < 1 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid end_year"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Năm kết thúc không hợp lệ"})
 		return
 	}
 
 	summary, err := GetMultiYearFinancialSummary(startYear, endYear)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get multi-year financial summary",
+			"error": "Lấy báo cáo tài chính nhiều năm thất bại",
 		})
 		return
 	}

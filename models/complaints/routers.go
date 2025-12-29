@@ -14,19 +14,19 @@ func CreateComplaintHandler(c *gin.Context) {
 	// Get user from context
 	userInterface, exists := c.Get("user")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found in context"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Không tìm thấy người dùng"})
 		return
 	}
 
 	user, ok := userInterface.(*users.User)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user format"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Định dạng người dùng không hợp lệ"})
 		return
 	}
 
 	var req CreateComplaintRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Định dạng yêu cầu không hợp lệ"})
 		return
 	}
 
@@ -38,11 +38,11 @@ func CreateComplaintHandler(c *gin.Context) {
 	// Check for duplicate complaint
 	exists, err := CheckDuplicateComplaint(user.ID, req.TargetID, ComplaintType(req.TargetType))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check duplicate complaint"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Kiểm tra khiếu nại trùng lặp thất bại"})
 		return
 	}
 	if exists {
-		c.JSON(http.StatusConflict, gin.H{"error": "You have already submitted a complaint for this content"})
+		c.JSON(http.StatusConflict, gin.H{"error": "Bạn đã gửi khiếu nại cho nội dung này rồi"})
 		return
 	}
 
@@ -56,12 +56,12 @@ func CreateComplaintHandler(c *gin.Context) {
 	}
 
 	if err := CreateComplaint(complaint); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create complaint"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Tạo khiếu nại thất bại"})
 		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"message": "Complaint submitted successfully",
+		"message": "Gửi khiếu nại thành công",
 		"data":    complaint.ToComplaintResponse(),
 	})
 }
@@ -71,19 +71,19 @@ func CreateScanComplaintHandler(c *gin.Context) {
 	// Get user from context
 	userInterface, exists := c.Get("user")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found in context"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Không tìm thấy người dùng"})
 		return
 	}
 
 	user, ok := userInterface.(*users.User)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user format"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Định dạng người dùng không hợp lệ"})
 		return
 	}
 
 	var req CreateScanComplaintRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Định dạng yêu cầu không hợp lệ"})
 		return
 	}
 
@@ -109,12 +109,12 @@ func CreateScanComplaintHandler(c *gin.Context) {
 	}
 
 	if err := CreateComplaint(complaint); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create complaint"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Tạo khiếu nại thất bại"})
 		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"message": "Scan complaint submitted successfully",
+		"message": "Gửi khiếu nại quét thành công",
 		"data":    complaint.ToComplaintResponse(),
 	})
 }
@@ -123,13 +123,13 @@ func CreateScanComplaintHandler(c *gin.Context) {
 func GetMyComplaintsHandler(c *gin.Context) {
 	userInterface, exists := c.Get("user")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found in context"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Không tìm thấy người dùng"})
 		return
 	}
 
 	user, ok := userInterface.(*users.User)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user format"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Định dạng người dùng không hợp lệ"})
 		return
 	}
 
@@ -145,7 +145,7 @@ func GetMyComplaintsHandler(c *gin.Context) {
 
 	complaints, total, err := GetComplaintsByUserID(user.ID, offset, limit)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get complaints"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lấy danh sách khiếu nại thất bại"})
 		return
 	}
 
@@ -168,13 +168,13 @@ func GetMyComplaintsHandler(c *gin.Context) {
 func GetComplaintByIDHandler(c *gin.Context) {
 	userInterface, exists := c.Get("user")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found in context"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Không tìm thấy người dùng"})
 		return
 	}
 
 	user, ok := userInterface.(*users.User)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user format"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Định dạng người dùng không hợp lệ"})
 		return
 	}
 
@@ -186,13 +186,13 @@ func GetComplaintByIDHandler(c *gin.Context) {
 
 	complaint, err := GetComplaintByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Complaint not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Không tìm thấy khiếu nại"})
 		return
 	}
 
 	// Only allow user to see their own complaints (unless admin)
 	if complaint.UserID != user.ID && user.Role != "ADMIN" {
-		c.JSON(http.StatusForbidden, gin.H{"error": "You can only view your own complaints"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "Bạn chỉ có thể xem khiếu nại của mình"})
 		return
 	}
 
@@ -203,13 +203,13 @@ func GetComplaintByIDHandler(c *gin.Context) {
 func GetComplaintsAboutMyContentHandler(c *gin.Context) {
 	userInterface, exists := c.Get("user")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found in context"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Không tìm thấy người dùng"})
 		return
 	}
 
 	user, ok := userInterface.(*users.User)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user format"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Định dạng người dùng không hợp lệ"})
 		return
 	}
 
@@ -218,7 +218,7 @@ func GetComplaintsAboutMyContentHandler(c *gin.Context) {
 
 	complaints, err := GetComplaintsAboutMyContent(user.ID, status, targetType)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get complaints"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lấy danh sách khiếu nại thất bại"})
 		return
 	}
 
@@ -237,13 +237,13 @@ func GetComplaintsAboutMyContentHandler(c *gin.Context) {
 func DeleteComplaintHandler(c *gin.Context) {
 	userInterface, exists := c.Get("user")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found in context"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Không tìm thấy người dùng"})
 		return
 	}
 
 	user, ok := userInterface.(*users.User)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user format"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Định dạng người dùng không hợp lệ"})
 		return
 	}
 
@@ -255,27 +255,27 @@ func DeleteComplaintHandler(c *gin.Context) {
 
 	complaint, err := GetComplaintByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Complaint not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Không tìm thấy khiếu nại"})
 		return
 	}
 
 	// Only allow user to delete their own pending complaints
 	if complaint.UserID != user.ID {
-		c.JSON(http.StatusForbidden, gin.H{"error": "You can only delete your own complaints"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "Bạn chỉ có thể xóa khiếu nại của mình"})
 		return
 	}
 
 	if complaint.Status != ComplaintStatusPending {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "You can only delete pending complaints"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Bạn chỉ có thể xóa khiếu nại đang chờ xử lý"})
 		return
 	}
 
 	if err := DeleteComplaint(id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete complaint"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Xóa khiếu nại thất bại"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Complaint deleted successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Xóa khiếu nại thành công"})
 }
 
 // ============ ADMIN HANDLERS ============
@@ -297,7 +297,7 @@ func GetAllComplaintsHandler(c *gin.Context) {
 
 	complaints, total, err := GetAllComplaints(offset, limit, status, targetType)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get complaints"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lấy danh sách khiếu nại thất bại"})
 		return
 	}
 
@@ -330,7 +330,7 @@ func GetComplaintsCountHandler(c *gin.Context) {
 
 	count, err := GetComplaintsCount(status, targetType, isVerified)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get complaints count"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lấy số lượng khiếu nại thất bại"})
 		return
 	}
 
@@ -348,13 +348,13 @@ func GetComplaintsCountHandler(c *gin.Context) {
 func UpdateComplaintStatusHandler(c *gin.Context) {
 	userInterface, exists := c.Get("user")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found in context"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Không tìm thấy người dùng"})
 		return
 	}
 
 	user, ok := userInterface.(*users.User)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user format"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Định dạng người dùng không hợp lệ"})
 		return
 	}
 
@@ -366,7 +366,7 @@ func UpdateComplaintStatusHandler(c *gin.Context) {
 
 	var req UpdateComplaintStatusRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Định dạng yêu cầu không hợp lệ"})
 		return
 	}
 
@@ -378,12 +378,12 @@ func UpdateComplaintStatusHandler(c *gin.Context) {
 	// Check if complaint exists
 	_, err := GetComplaintByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Complaint not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Không tìm thấy khiếu nại"})
 		return
 	}
 
 	if err := UpdateComplaintStatus(id, ComplaintStatus(req.Status), req.AdminNotes, user.ID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update complaint status"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Cập nhật trạng thái khiếu nại thất bại"})
 		return
 	}
 
@@ -391,7 +391,7 @@ func UpdateComplaintStatusHandler(c *gin.Context) {
 	updatedComplaint, _ := GetComplaintByID(id)
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Complaint status updated successfully",
+		"message": "Cập nhật trạng thái khiếu nại thành công",
 		"data":    updatedComplaint.ToComplaintResponse(),
 	})
 }
@@ -406,16 +406,16 @@ func AdminDeleteComplaintHandler(c *gin.Context) {
 
 	_, err := GetComplaintByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Complaint not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Không tìm thấy khiếu nại"})
 		return
 	}
 
 	if err := DeleteComplaint(id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete complaint"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Xóa khiếu nại thất bại"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Complaint deleted successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Xóa khiếu nại thành công"})
 }
 
 // GetComplaintsByTargetHandler gets all complaints for a specific post, comment, or scan (admin only)
@@ -424,18 +424,18 @@ func GetComplaintsByTargetHandler(c *gin.Context) {
 	targetType := c.Query("target_type")
 
 	if err := ValidateUUID(targetID); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "target_id must be a valid UUID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "target_id phải là UUID hợp lệ"})
 		return
 	}
 
 	if targetType != string(ComplaintTypePost) && targetType != string(ComplaintTypeComment) && targetType != string(ComplaintTypeScan) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "target_type must be POST, COMMENT, or SCAN"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "target_type phải là POST, COMMENT hoặc SCAN"})
 		return
 	}
 
 	complaints, err := GetComplaintsByTargetID(targetID, ComplaintType(targetType))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get complaints"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lấy danh sách khiếu nại thất bại"})
 		return
 	}
 
@@ -453,13 +453,13 @@ func GetComplaintsByTargetHandler(c *gin.Context) {
 func VerifyComplaintHandler(c *gin.Context) {
 	userInterface, exists := c.Get("user")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found in context"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Không tìm thấy người dùng"})
 		return
 	}
 
 	user, ok := userInterface.(*users.User)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user format"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Định dạng người dùng không hợp lệ"})
 		return
 	}
 
@@ -471,7 +471,7 @@ func VerifyComplaintHandler(c *gin.Context) {
 
 	var req VerifyComplaintRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Định dạng yêu cầu không hợp lệ"})
 		return
 	}
 
@@ -483,18 +483,18 @@ func VerifyComplaintHandler(c *gin.Context) {
 	// Check if complaint exists and is a scan complaint
 	complaint, err := GetComplaintByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Complaint not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Không tìm thấy khiếu nại"})
 		return
 	}
 
 	if complaint.TargetType != ComplaintTypeScan {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Only scan complaints can be verified"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Chỉ có thể xác minh khiếu nại quét"})
 		return
 	}
 
 	// Verify the complaint
 	if err := VerifyComplaint(id, req.VerifiedDiseaseID, req.IsVerified, req.AdminNotes, user.ID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify complaint"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Xác minh khiếu nại thất bại"})
 		return
 	}
 
@@ -502,7 +502,7 @@ func VerifyComplaintHandler(c *gin.Context) {
 	updatedComplaint, _ := GetComplaintByID(id)
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Complaint verified successfully",
+		"message": "Xác minh khiếu nại thành công",
 		"data":    updatedComplaint.ToComplaintResponse(),
 	})
 }
@@ -522,7 +522,7 @@ func GetUnverifiedScanComplaintsHandler(c *gin.Context) {
 
 	complaints, total, err := GetUnverifiedScanComplaints(offset, limit)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get unverified complaints"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lấy danh sách khiếu nại chưa xác minh thất bại"})
 		return
 	}
 
@@ -547,12 +547,12 @@ func GetUnverifiedScanComplaintsHandler(c *gin.Context) {
 func ExportTrainingDataHandler(c *gin.Context) {
 	data, err := ExportTrainingData()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to export training data"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Xuất dữ liệu huấn luyện thất bại"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Training data exported successfully",
+		"message": "Xuất dữ liệu huấn luyện thành công",
 		"count":   len(data),
 		"data":    data,
 	})
@@ -564,12 +564,12 @@ func GetProblematicDiseasesHandler(c *gin.Context) {
 
 	data, err := GetMostProblematicDiseases(limit)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get problematic diseases"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lấy danh sách bệnh có vấn đề thất bại"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Problematic diseases retrieved successfully",
+		"message": "Lấy danh sách bệnh có vấn đề thành công",
 		"count":   len(data),
 		"data":    data,
 	})
@@ -581,12 +581,12 @@ func GetComplaintTrendsHandler(c *gin.Context) {
 
 	data, err := GetComplaintTrends(days)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get complaint trends"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lấy xu hướng khiếu nại thất bại"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Complaint trends retrieved successfully",
+		"message": "Lấy xu hướng khiếu nại thành công",
 		"days":    days,
 		"count":   len(data),
 		"data":    data,
@@ -597,12 +597,12 @@ func GetComplaintTrendsHandler(c *gin.Context) {
 func GetOverallStatsHandler(c *gin.Context) {
 	data, err := GetOverallStats()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get overall stats"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lấy thống kê tổng quan thất bại"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Overall statistics retrieved successfully",
+		"message": "Lấy thống kê tổng quan thành công",
 		"data":    data,
 	})
 }
@@ -613,12 +613,12 @@ func GetTopContributorsHandler(c *gin.Context) {
 
 	data, err := GetTopContributors(limit)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get top contributors"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lấy danh sách người đóng góp hàng đầu thất bại"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Top contributors retrieved successfully",
+		"message": "Lấy danh sách người đóng góp hàng đầu thành công",
 		"count":   len(data),
 		"data":    data,
 	})
