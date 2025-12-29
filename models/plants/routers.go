@@ -22,7 +22,7 @@ func CreatePlantHandler(c *gin.Context) {
 	// Bind JSON request body
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request body",
+			"error": "Nội dung yêu cầu không hợp lệ",
 		})
 		return
 	}
@@ -44,7 +44,7 @@ func CreatePlantHandler(c *gin.Context) {
 
 	if err := CreatePlantRecord(&plant); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to create plant",
+			"error": "Tạo cây trồng thất bại",
 		})
 		return
 	}
@@ -59,7 +59,7 @@ func GetAllPlantsHandler(c *gin.Context) {
 	plants, err := GetAllPlants()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get plants",
+			"error": "Lấy danh sách cây trồng thất bại",
 		})
 		return
 	}
@@ -83,7 +83,7 @@ func GetPlantByIDHandler(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Plant ID is required",
+			"error": "Cần có ID cây trồng",
 		})
 		return
 	}
@@ -91,7 +91,7 @@ func GetPlantByIDHandler(c *gin.Context) {
 	plant, err := GetPlantByID(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
-			"error": "Plant not found",
+			"error": "Không tìm thấy cây trồng",
 		})
 		return
 	}
@@ -106,7 +106,7 @@ func UpdatePlantHandler(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Plant ID is required",
+			"error": "Cần có ID cây trồng",
 		})
 		return
 	}
@@ -116,7 +116,7 @@ func UpdatePlantHandler(c *gin.Context) {
 	// Bind JSON request body
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request body",
+			"error": "Nội dung yêu cầu không hợp lệ",
 		})
 		return
 	}
@@ -145,7 +145,7 @@ func UpdatePlantHandler(c *gin.Context) {
 	plant, err := UpdatePlant(id, updates)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to update plant",
+			"error": "Cập nhật cây trồng thất bại",
 		})
 		return
 	}
@@ -160,7 +160,7 @@ func DeletePlantHandler(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Plant ID is required",
+			"error": "Cần có ID cây trồng",
 		})
 		return
 	}
@@ -168,12 +168,12 @@ func DeletePlantHandler(c *gin.Context) {
 	// Delete plant
 	if err := DeletePlant(id); err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
-			"error": "Plant not found",
+			"error": "Không tìm thấy cây trồng",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Plant deleted successfully",
+		"message": "Xóa cây trồng thành công",
 	})
 }

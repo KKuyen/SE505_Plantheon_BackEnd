@@ -12,7 +12,7 @@ func CreateSubGuideStageHandler(c *gin.Context) {
 	var req CreateSubGuideStageRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request format",
+			"error": "Định dạng yêu cầu không hợp lệ",
 		})
 		return
 	}
@@ -35,13 +35,13 @@ func CreateSubGuideStageHandler(c *gin.Context) {
 
 	if err := CreateSubGuideStage(subGuideStage); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to create sub guide stage",
+			"error": "Tạo giai đoạn hướng dẫn phụ thất bại",
 		})
 		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"message": "Sub guide stage created successfully",
+		"message": "Tạo giai đoạn hướng dẫn phụ thành công",
 		"data":    subGuideStage.ToSubGuideStageResponse(),
 	})
 }
@@ -51,7 +51,7 @@ func GetSubGuideStageByIDHandler(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Sub guide stage ID is required",
+			"error": "Cần có ID giai đoạn hướng dẫn phụ",
 		})
 		return
 	}
@@ -60,12 +60,12 @@ func GetSubGuideStageByIDHandler(c *gin.Context) {
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusNotFound, gin.H{
-				"error": "Sub guide stage not found",
+				"error": "Không tìm thấy giai đoạn hướng dẫn phụ",
 			})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get sub guide stage",
+			"error": "Lấy giai đoạn hướng dẫn phụ thất bại",
 		})
 		return
 	}
@@ -80,7 +80,7 @@ func GetSubGuideStagesByGuideStageIDHandler(c *gin.Context) {
 	guideStageID := c.Param("guide_stage_id")
 	if guideStageID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Guide stage ID is required",
+			"error": "Cần có ID giai đoạn hướng dẫn",
 		})
 		return
 	}
@@ -88,7 +88,7 @@ func GetSubGuideStagesByGuideStageIDHandler(c *gin.Context) {
 	subGuideStages, err := GetSubGuideStagesByGuideStageID(guideStageID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get sub guide stages",
+			"error": "Lấy danh sách giai đoạn hướng dẫn phụ thất bại",
 		})
 		return
 	}
@@ -112,7 +112,7 @@ func UpdateSubGuideStageHandler(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Sub guide stage ID is required",
+			"error": "Cần có ID giai đoạn hướng dẫn phụ",
 		})
 		return
 	}
@@ -122,12 +122,12 @@ func UpdateSubGuideStageHandler(c *gin.Context) {
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusNotFound, gin.H{
-				"error": "Sub guide stage not found",
+				"error": "Không tìm thấy giai đoạn hướng dẫn phụ",
 			})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get sub guide stage",
+			"error": "Lấy giai đoạn hướng dẫn phụ thất bại",
 		})
 		return
 	}
@@ -163,7 +163,7 @@ func UpdateSubGuideStageHandler(c *gin.Context) {
 	// Validate day offsets after update
 	if subGuideStage.EndDayOffset < subGuideStage.StartDayOffset {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "end_day_offset must be greater than or equal to start_day_offset",
+			"error": "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu",
 		})
 		return
 	}
@@ -171,13 +171,13 @@ func UpdateSubGuideStageHandler(c *gin.Context) {
 	// Save updated sub guide stage
 	if err := UpdateSubGuideStage(subGuideStage); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to update sub guide stage",
+			"error": "Cập nhật giai đoạn hướng dẫn phụ thất bại",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Sub guide stage updated successfully",
+		"message": "Cập nhật giai đoạn hướng dẫn phụ thành công",
 		"data":    subGuideStage.ToSubGuideStageResponse(),
 	})
 }
@@ -187,7 +187,7 @@ func DeleteSubGuideStageHandler(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Sub guide stage ID is required",
+			"error": "Cần có ID giai đoạn hướng dẫn phụ",
 		})
 		return
 	}
@@ -197,12 +197,12 @@ func DeleteSubGuideStageHandler(c *gin.Context) {
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusNotFound, gin.H{
-				"error": "Sub guide stage not found",
+				"error": "Không tìm thấy giai đoạn hướng dẫn phụ",
 			})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get sub guide stage",
+			"error": "Lấy giai đoạn hướng dẫn phụ thất bại",
 		})
 		return
 	}
@@ -210,12 +210,12 @@ func DeleteSubGuideStageHandler(c *gin.Context) {
 	// Delete sub guide stage
 	if err := DeleteSubGuideStage(id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to delete sub guide stage",
+			"error": "Xóa giai đoạn hướng dẫn phụ thất bại",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Sub guide stage deleted successfully",
+		"message": "Xóa giai đoạn hướng dẫn phụ thành công",
 	})
 }

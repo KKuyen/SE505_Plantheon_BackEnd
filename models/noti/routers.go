@@ -13,7 +13,7 @@ func GetNotificationsHandler(c *gin.Context) {
 	userInterface, exists := c.Get("user")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User not found in context",
+			"error": "Không tìm thấy người dùng",
 		})
 		return
 	}
@@ -21,7 +21,7 @@ func GetNotificationsHandler(c *gin.Context) {
 	user, ok := userInterface.(*users.User)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Invalid user format",
+			"error": "Định dạng người dùng không hợp lệ",
 		})
 		return
 	}
@@ -29,7 +29,7 @@ func GetNotificationsHandler(c *gin.Context) {
 	notifications, err := GetNotificationsByUserID(user.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get notifications",
+			"error": "Lấy danh sách thông báo thất bại",
 		})
 		return
 	}
@@ -44,7 +44,7 @@ func MarkNotificationAsSeenHandler(c *gin.Context) {
 	userInterface, exists := c.Get("user")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User not found in context",
+			"error": "Không tìm thấy người dùng",
 		})
 		return
 	}
@@ -52,7 +52,7 @@ func MarkNotificationAsSeenHandler(c *gin.Context) {
 	user, ok := userInterface.(*users.User)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Invalid user format",
+			"error": "Định dạng người dùng không hợp lệ",
 		})
 		return
 	}
@@ -67,13 +67,13 @@ func MarkNotificationAsSeenHandler(c *gin.Context) {
 
 	if err := MarkNotificationAsSeen(id, user.ID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to mark notification as seen",
+			"error": "Đánh dấu thông báo đã xem thất bại",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Notification marked as seen successfully",
+		"message": "Đánh dấu thông báo đã xem thành công",
 	})
 }
 
@@ -82,7 +82,7 @@ func DeleteNotificationHandler(c *gin.Context) {
 	userInterface, exists := c.Get("user")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User not found in context",
+			"error": "Không tìm thấy người dùng",
 		})
 		return
 	}
@@ -90,7 +90,7 @@ func DeleteNotificationHandler(c *gin.Context) {
 	user, ok := userInterface.(*users.User)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Invalid user format",
+			"error": "Định dạng người dùng không hợp lệ",
 		})
 		return
 	}
@@ -105,13 +105,13 @@ func DeleteNotificationHandler(c *gin.Context) {
 
 	if err := DeleteNotificationByID(id, user.ID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to delete notification",
+			"error": "Xóa thông báo thất bại",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Notification deleted successfully",
+		"message": "Xóa thông báo thành công",
 	})
 }
 
@@ -120,7 +120,7 @@ func DeleteAllNotificationsHandler(c *gin.Context) {
 	userInterface, exists := c.Get("user")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User not found in context",
+			"error": "Không tìm thấy người dùng",
 		})
 		return
 	}
@@ -128,20 +128,20 @@ func DeleteAllNotificationsHandler(c *gin.Context) {
 	user, ok := userInterface.(*users.User)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Invalid user format",
+			"error": "Định dạng người dùng không hợp lệ",
 		})
 		return
 	}
 
 	if err := DeleteAllNotificationsByUserID(user.ID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to delete all notifications",
+			"error": "Xóa tất cả thông báo thất bại",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "All notifications deleted successfully",
+		"message": "Xóa tất cả thông báo thành công",
 	})
 }
 
@@ -150,7 +150,7 @@ func CreateNotificationHandler(c *gin.Context) {
 	userInterface, exists := c.Get("user")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User not found in context",
+			"error": "Không tìm thấy người dùng",
 		})
 		return
 	}
@@ -158,7 +158,7 @@ func CreateNotificationHandler(c *gin.Context) {
 	user, ok := userInterface.(*users.User)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Invalid user format",
+			"error": "Định dạng người dùng không hợp lệ",
 		})
 		return
 	}
@@ -166,7 +166,7 @@ func CreateNotificationHandler(c *gin.Context) {
 	var req CreateNotificationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request",
+			"error": "Yêu cầu không hợp lệ",
 		})
 		return
 	}
@@ -188,13 +188,13 @@ func CreateNotificationHandler(c *gin.Context) {
 
 	if err := CreateNotification(notification); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to create notification",
+			"error": "Tạo thông báo thất bại",
 		})
 		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"message": "Notification created successfully",
+		"message": "Tạo thông báo thành công",
 		"data": NotificationResponse{
 			ID:        notification.ID,
 			UserID:    notification.UserID,

@@ -25,7 +25,7 @@ func AddCommentHandler(c *gin.Context) {
 	userInterface, exists := c.Get("user")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User not found in context",
+			"error": "Không tìm thấy người dùng",
 		})
 		return
 	}
@@ -33,7 +33,7 @@ func AddCommentHandler(c *gin.Context) {
 	user, ok := userInterface.(*users.User)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Invalid user format",
+			"error": "Định dạng người dùng không hợp lệ",
 		})
 		return
 	}
@@ -59,7 +59,7 @@ func AddCommentHandler(c *gin.Context) {
 
 	// Tăng số comment cho post
 	if err := IncreasePostCommentCount(postID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to increase comment number"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Tăng số bình luận thất bại"})
 		return
 	}
 
@@ -78,7 +78,7 @@ func AddCommentHandler(c *gin.Context) {
 		}
 	}
 	c.JSON(http.StatusCreated, gin.H{
-		"message": "Comment added successfully",
+		"message": "Thêm bình luận thành công",
 		"data": gin.H{
 			"id":        comment.ID,
 			"post_id":   comment.PostID,
@@ -106,24 +106,24 @@ func UpdateCommentHandler(c *gin.Context) {
 	userInterface, exists := c.Get("user")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User not found in context",
+			"error": "Không tìm thấy người dùng",
 		})
 		return
 	}
 	user, ok := userInterface.(*users.User)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Invalid user format",
+			"error": "Định dạng người dùng không hợp lệ",
 		})
 		return
 	}
 	comment, err := GetCommentByID(commentID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Comment not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Không tìm thấy bình luận"})
 		return
 	}
 	if comment.UserID != user.ID {
-		c.JSON(http.StatusForbidden, gin.H{"error": "You are not authorized to update this comment"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "Bạn không có quyền cập nhật bình luận này"})
 		return
 	}
 	comment.Content = req.Content
@@ -131,7 +131,7 @@ func UpdateCommentHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Comment updated successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Cập nhật bình luận thành công"})
 }
 
 func DeleteCommentHandler(c *gin.Context) {
@@ -139,37 +139,37 @@ func DeleteCommentHandler(c *gin.Context) {
 	userInterface, exists := c.Get("user")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User not found in context",
+			"error": "Không tìm thấy người dùng",
 		})
 		return
 	}
 	user, ok := userInterface.(*users.User)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Invalid user format",
+			"error": "Định dạng người dùng không hợp lệ",
 		})
 		return
 	}
 	comment, err := GetCommentByID(commentID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Comment not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Không tìm thấy bình luận"})
 		return
 	}
 	if comment.UserID != user.ID {
-		c.JSON(http.StatusForbidden, gin.H{"error": "You are not authorized to delete this comment"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "Bạn không có quyền xóa bình luận này"})
 		return
 	}
 	if err := DeleteCommentByID(commentID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Comment deleted successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Xóa bình luận thành công"})
 }
 
 func GetCommentsByPostIDHandler(c *gin.Context) {
 	postID := c.Param("id")
 	if postID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Post ID is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Cần có ID bài viết"})
 		return
 	}
 
@@ -185,7 +185,7 @@ func GetCommentsByPostIDHandler(c *gin.Context) {
 
 	comments, err := GetCommentsByPostID(postID, viewerID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get comments"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lấy danh sách bình luận thất bại"})
 		return
 	}
 
@@ -200,12 +200,12 @@ func LikeCommentHandler(c *gin.Context) {
 	commentID := c.Param("commentId")
 	userInterface, exists := c.Get("user")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found in context"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Không tìm thấy người dùng"})
 		return
 	}
 	user, ok := userInterface.(*users.User)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user format"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Định dạng người dùng không hợp lệ"})
 		return
 	}
 
@@ -213,7 +213,7 @@ func LikeCommentHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Comment liked"})
+	c.JSON(http.StatusOK, gin.H{"message": "Đã thích bình luận"})
 }
 
 // UnlikeCommentHandler handles unliking a comment.
@@ -221,12 +221,12 @@ func UnlikeCommentHandler(c *gin.Context) {
 	commentID := c.Param("commentId")
 	userInterface, exists := c.Get("user")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found in context"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Không tìm thấy người dùng"})
 		return
 	}
 	user, ok := userInterface.(*users.User)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user format"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Định dạng người dùng không hợp lệ"})
 		return
 	}
 
@@ -234,7 +234,7 @@ func UnlikeCommentHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Comment unliked"})
+	c.JSON(http.StatusOK, gin.H{"message": "Đã bỏ thích bình luận"})
 }
 
 // ============ ADMIN HANDLERS ============
@@ -243,7 +243,7 @@ func UnlikeCommentHandler(c *gin.Context) {
 func AdminUpdateCommentIsDeletedHandler(c *gin.Context) {
 	commentID := c.Param("commentId")
 	if commentID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Comment ID is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Cần có ID bình luận"})
 		return
 	}
 
@@ -251,19 +251,19 @@ func AdminUpdateCommentIsDeletedHandler(c *gin.Context) {
 		IsDeleted bool `json:"is_deleted"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Định dạng yêu cầu không hợp lệ"})
 		return
 	}
 
 	// Check if comment exists
 	comment, err := GetCommentByIDAdmin(commentID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Comment not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Không tìm thấy bình luận"})
 		return
 	}
 
 	if err := UpdateCommentIsDeleted(commentID, req.IsDeleted); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update comment"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Cập nhật bình luận thất bại"})
 		return
 	}
 
@@ -286,13 +286,13 @@ func AdminUpdateCommentIsDeletedHandler(c *gin.Context) {
 func AdminGetCommentByIDHandler(c *gin.Context) {
 	commentID := c.Param("commentId")
 	if commentID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Comment ID is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Cần có ID bình luận"})
 		return
 	}
 
 	comment, err := GetCommentByIDAdmin(commentID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Comment not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Không tìm thấy bình luận"})
 		return
 	}
 

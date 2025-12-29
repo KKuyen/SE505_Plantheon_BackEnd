@@ -40,16 +40,16 @@ func AddActivityKeywordToDiseaseHandler(c *gin.Context) {
 	// Check if activity keyword exists
 	_, err := activity_keywords.GetActivityKeywordByID(req.ActivityKeywordID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Activity keyword not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Không tìm thấy từ khóa hoạt động"})
 		return
 	}
 	
 	if err := AddActivityKeywordToDisease(diseaseID, req.ActivityKeywordID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add activity keyword to disease"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Thêm từ khóa hoạt động vào bệnh thất bại"})
 		return
 	}
 	
-	c.JSON(http.StatusOK, gin.H{"message": "Activity keyword added successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Thêm từ khóa hoạt động thành công"})
 }
 
 // RemoveActivityKeywordFromDiseaseHandler removes an activity keyword from a disease
@@ -58,11 +58,11 @@ func RemoveActivityKeywordFromDiseaseHandler(c *gin.Context) {
 	keywordID := c.Param("keyword_id")
 	
 	if err := RemoveActivityKeywordFromDisease(diseaseID, keywordID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to remove activity keyword from disease"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Xóa từ khóa hoạt động khỏi bệnh thất bại"})
 		return
 	}
 	
-	c.JSON(http.StatusOK, gin.H{"message": "Activity keyword removed successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Xóa từ khóa hoạt động thành công"})
 }
 
 // GetActivityKeywordsForDiseaseHandler gets all activity keywords for a disease with full details
@@ -71,7 +71,7 @@ func GetActivityKeywordsForDiseaseHandler(c *gin.Context) {
 	
 	keywordIDs, err := GetActivityKeywordsByDiseaseID(diseaseID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get activity keywords"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lấy danh sách từ khóa hoạt động thất bại"})
 		return
 	}
 	
@@ -83,7 +83,7 @@ func GetActivityKeywordsForDiseaseHandler(c *gin.Context) {
 	// Fetch full activity keyword details
 	keywords, err := activity_keywords.GetActivityKeywordsByIDs(keywordIDs)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get activity keyword details"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lấy chi tiết từ khóa hoạt động thất bại"})
 		return
 	}
 	
@@ -102,13 +102,13 @@ func GetDiseasesForKeywordHandler(c *gin.Context) {
 	// Check if keyword exists
 	_, err := activity_keywords.GetActivityKeywordByID(keywordID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Activity keyword not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Không tìm thấy từ khóa hoạt động"})
 		return
 	}
 	
 	diseaseIDs, err := GetDiseasesByActivityKeywordID(keywordID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get diseases"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lấy danh sách bệnh thất bại"})
 		return
 	}
 	
@@ -120,7 +120,7 @@ func GetDiseasesForKeywordHandler(c *gin.Context) {
 	// Fetch full disease details
 	diseaseList, err := diseases.GetDiseasesByIDs(diseaseIDs)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get disease details"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lấy chi tiết bệnh thất bại"})
 		return
 	}
 	
@@ -146,17 +146,17 @@ func SetActivityKeywordsForDiseaseHandler(c *gin.Context) {
 	for _, keywordID := range req.ActivityKeywordIDs {
 		_, err := activity_keywords.GetActivityKeywordByID(keywordID)
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Activity keyword not found: " + keywordID})
+			c.JSON(http.StatusNotFound, gin.H{"error": "Không tìm thấy từ khóa hoạt động: " + keywordID})
 			return
 		}
 	}
 	
 	if err := SetActivityKeywordsForDisease(diseaseID, req.ActivityKeywordIDs); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to set activity keywords"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Thiết lập từ khóa hoạt động thất bại"})
 		return
 	}
 	
-	c.JSON(http.StatusOK, gin.H{"message": "Activity keywords set successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Thiết lập từ khóa hoạt động thành công"})
 }
 
 // CSVImportError represents an error during CSV import
@@ -172,7 +172,7 @@ func ImportActivityKeywordsFromCSVHandler(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "No file uploaded",
+			"error": "Không có tệp được tải lên",
 		})
 		return
 	}
@@ -181,7 +181,7 @@ func ImportActivityKeywordsFromCSVHandler(c *gin.Context) {
 	filename := strings.ToLower(file.Filename)
 	if !strings.HasSuffix(filename, ".csv") {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Only .csv files are supported",
+			"error": "Chỉ hỗ trợ tệp .csv",
 		})
 		return
 	}
@@ -190,7 +190,7 @@ func ImportActivityKeywordsFromCSVHandler(c *gin.Context) {
 	src, err := file.Open()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to open file",
+			"error": "Mở tệp thất bại",
 		})
 		return
 	}
@@ -201,14 +201,14 @@ func ImportActivityKeywordsFromCSVHandler(c *gin.Context) {
 	rows, err := reader.ReadAll()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("Failed to read CSV file: %v", err),
+			"error": fmt.Sprintf("Đọc tệp CSV thất bại: %v", err),
 		})
 		return
 	}
 
 	if len(rows) < 2 {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "CSV file must have at least 2 rows (header + data)",
+			"error": "Tệp CSV phải có ít nhất 2 dòng (tiêu đề + dữ liệu)",
 		})
 		return
 	}
@@ -225,8 +225,8 @@ func ImportActivityKeywordsFromCSVHandler(c *gin.Context) {
 		if len(row) < 8 {
 			errors = append(errors, CSVImportError{
 				Row:     rowNum,
-				Error:   "Invalid row",
-				Details: "Row must have at least 8 columns",
+				Error:   "Dòng không hợp lệ",
+				Details: "Dòng phải có ít nhất 8 cột",
 			})
 			continue
 		}
@@ -244,8 +244,8 @@ func ImportActivityKeywordsFromCSVHandler(c *gin.Context) {
 		if className == "" {
 			errors = append(errors, CSVImportError{
 				Row:     rowNum,
-				Error:   "Missing ClassName",
-				Details: "ClassName is required",
+				Error:   "Thiếu tên lớp",
+				Details: "Cần có tên lớp",
 			})
 			continue
 		}
@@ -253,8 +253,8 @@ func ImportActivityKeywordsFromCSVHandler(c *gin.Context) {
 		if keywordName == "" {
 			errors = append(errors, CSVImportError{
 				Row:     rowNum,
-				Error:   "Missing keywordName",
-				Details: "keywordName is required",
+				Error:   "Thiếu tên từ khóa",
+				Details: "Cần có tên từ khóa",
 			})
 			continue
 		}
@@ -262,8 +262,8 @@ func ImportActivityKeywordsFromCSVHandler(c *gin.Context) {
 		if keywordType == "" {
 			errors = append(errors, CSVImportError{
 				Row:     rowNum,
-				Error:   "Missing keywordType",
-				Details: "keywordType is required",
+				Error:   "Thiếu loại từ khóa",
+				Details: "Cần có loại từ khóa",
 			})
 			continue
 		}
@@ -275,8 +275,8 @@ func ImportActivityKeywordsFromCSVHandler(c *gin.Context) {
 			if err != nil {
 				errors = append(errors, CSVImportError{
 					Row:     rowNum,
-					Error:   "Invalid keywordDayOffset",
-					Details: fmt.Sprintf("Must be a number: %v", err),
+					Error:   "Số ngày không hợp lệ",
+					Details: fmt.Sprintf("Phải là số: %v", err),
 				})
 				continue
 			}
@@ -299,16 +299,16 @@ func ImportActivityKeywordsFromCSVHandler(c *gin.Context) {
 			if err != nil {
 				errors = append(errors, CSVImportError{
 					Row:     rowNum,
-					Error:   "Invalid keywordHourTime",
-					Details: fmt.Sprintf("Must be a number: %v", err),
+					Error:   "Giờ không hợp lệ",
+					Details: fmt.Sprintf("Phải là số: %v", err),
 				})
 				continue
 			}
 			if hourTime < 0 || hourTime > 23 {
 				errors = append(errors, CSVImportError{
 					Row:     rowNum,
-					Error:   "Invalid keywordHourTime",
-					Details: "Must be between 0 and 23",
+					Error:   "Giờ không hợp lệ",
+					Details: "Phải từ 0 đến 23",
 				})
 				continue
 			}
@@ -322,16 +322,16 @@ func ImportActivityKeywordsFromCSVHandler(c *gin.Context) {
 			if err != nil {
 				errors = append(errors, CSVImportError{
 					Row:     rowNum,
-					Error:   "Invalid timeDuration",
-					Details: fmt.Sprintf("Must be a number: %v", err),
+					Error:   "Thời lượng không hợp lệ",
+					Details: fmt.Sprintf("Phải là số: %v", err),
 				})
 				continue
 			}
 			if duration < 0 {
 				errors = append(errors, CSVImportError{
 					Row:     rowNum,
-					Error:   "Invalid timeDuration",
-					Details: "Must be non-negative",
+					Error:   "Thời lượng không hợp lệ",
+					Details: "Phải là số không âm",
 				})
 				continue
 			}
@@ -343,8 +343,8 @@ func ImportActivityKeywordsFromCSVHandler(c *gin.Context) {
 		if err != nil {
 			errors = append(errors, CSVImportError{
 				Row:     rowNum,
-				Error:   "Disease not found",
-				Details: fmt.Sprintf("No disease with ClassName '%s'", className),
+				Error:   "Không tìm thấy bệnh",
+				Details: fmt.Sprintf("Không có bệnh với tên lớp '%s'", className),
 			})
 			continue
 		}
@@ -387,8 +387,8 @@ func ImportActivityKeywordsFromCSVHandler(c *gin.Context) {
 				if err := activity_keywords.CreateActivityKeyword(&newKeyword); err != nil {
 					errors = append(errors, CSVImportError{
 						Row:     rowNum,
-						Error:   "Failed to create keyword",
-						Details: fmt.Sprintf("Error: %v", err),
+						Error:   "Tạo từ khóa thất bại",
+						Details: fmt.Sprintf("Lỗi: %v", err),
 					})
 					continue
 				}
@@ -402,8 +402,8 @@ func ImportActivityKeywordsFromCSVHandler(c *gin.Context) {
 		if err := AddActivityKeywordToDisease(disease.ID, keywordID); err != nil {
 			errors = append(errors, CSVImportError{
 				Row:     rowNum,
-				Error:   "Failed to link keyword to disease",
-				Details: fmt.Sprintf("Error: %v", err),
+				Error:   "Liên kết từ khóa với bệnh thất bại",
+				Details: fmt.Sprintf("Lỗi: %v", err),
 			})
 			continue
 		}
@@ -419,9 +419,9 @@ func ImportActivityKeywordsFromCSVHandler(c *gin.Context) {
 
 	if len(errors) > 0 {
 		response["errors"] = errors
-		response["message"] = fmt.Sprintf("Imported %d out of %d rows with %d errors", successCount, len(rows)-1, len(errors))
+		response["message"] = fmt.Sprintf("Nhập khẩu %d trên %d dòng với %d lỗi", successCount, len(rows)-1, len(errors))
 	} else {
-		response["message"] = fmt.Sprintf("Successfully imported all %d rows", successCount)
+		response["message"] = fmt.Sprintf("Nhập khẩu thành công tất cả %d dòng", successCount)
 	}
 
 	c.JSON(http.StatusOK, response)

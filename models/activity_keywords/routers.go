@@ -45,7 +45,7 @@ func CreateActivityKeywordHandler(c *gin.Context) {
 	}
 
 	if err := CreateActivityKeyword(&activityKeyword); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create activity keyword"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Tạo từ khóa hoạt động thất bại"})
 		return
 	}
 
@@ -56,7 +56,7 @@ func CreateActivityKeywordHandler(c *gin.Context) {
 func GetAllActivityKeywordsHandler(c *gin.Context) {
 	activityKeywords, err := GetAllActivityKeywords()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get activity keywords"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lấy danh sách từ khóa hoạt động thất bại"})
 		return
 	}
 
@@ -74,7 +74,7 @@ func GetActivityKeywordByIDHandler(c *gin.Context) {
 
 	activityKeyword, err := GetActivityKeywordByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Activity keyword not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Không tìm thấy từ khóa hoạt động"})
 		return
 	}
 
@@ -99,7 +99,7 @@ func UpdateActivityKeywordHandler(c *gin.Context) {
 	// Check if activity keyword exists
 	_, err := GetActivityKeywordByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Activity keyword not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Không tìm thấy từ khóa hoạt động"})
 		return
 	}
 
@@ -131,7 +131,7 @@ func UpdateActivityKeywordHandler(c *gin.Context) {
 	}
 
 	if err := UpdateActivityKeyword(id, updates); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update activity keyword"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Cập nhật từ khóa hoạt động thất bại"})
 		return
 	}
 
@@ -147,29 +147,29 @@ func DeleteActivityKeywordHandler(c *gin.Context) {
 	// Check if activity keyword exists
 	_, err := GetActivityKeywordByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Activity keyword not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Không tìm thấy từ khóa hoạt động"})
 		return
 	}
 
 	if err := DeleteActivityKeyword(id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete activity keyword"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Xóa từ khóa hoạt động thất bại"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Activity keyword deleted successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Xóa từ khóa hoạt động thành công"})
 }
 
 // SearchActivityKeywordsHandler handles searching activity keywords
 func SearchActivityKeywordsHandler(c *gin.Context) {
 	keyword := c.Query("keyword")
 	if keyword == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "keyword parameter is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Cần có tham số keyword"})
 		return
 	}
 
 	activityKeywords, err := SearchActivityKeywords(keyword)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to search activity keywords"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Tìm kiếm từ khóa hoạt động thất bại"})
 		return
 	}
 
@@ -209,7 +209,7 @@ func QueryActivityKeywordsHandler(c *gin.Context) {
 
 	activityKeywords, total, err := QueryActivityKeywords(name, keywordType, page, limit)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query activity keywords"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Truy vấn từ khóa hoạt động thất bại"})
 		return
 	}
 
@@ -263,7 +263,7 @@ func GetActivityKeywordsPaginatedHandler(c *gin.Context) {
 
 	activityKeywords, total, err := GetActivityKeywordsPaginated(page, limit)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get activity keywords"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lấy danh sách từ khóa hoạt động thất bại"})
 		return
 	}
 

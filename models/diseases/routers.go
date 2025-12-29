@@ -19,7 +19,7 @@ func CreateDiseaseHandler(c *gin.Context) {
 	var req CreateDiseaseRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request format",
+			"error": "Định dạng yêu cầu không hợp lệ",
 		})
 		return
 	}
@@ -44,13 +44,13 @@ func CreateDiseaseHandler(c *gin.Context) {
 
 	if err := CreateDiseaseRecord(disease); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to create disease",
+			"error": "Tạo bệnh thất bại",
 		})
 		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"message": "Disease created successfully",
+		"message": "Tạo bệnh thành công",
 		"data":    disease.ToDiseaseResponse(),
 	})
 }
@@ -60,7 +60,7 @@ func GetDisease(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Disease ID is required",
+			"error": "Cần có ID bệnh",
 		})
 		return
 	}
@@ -69,12 +69,12 @@ func GetDisease(c *gin.Context) {
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusNotFound, gin.H{
-				"error": "Disease not found",
+				"error": "Không tìm thấy bệnh",
 			})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get disease",
+			"error": "Lấy thông tin bệnh thất bại",
 		})
 		return
 	}
@@ -120,7 +120,7 @@ func GetDiseases(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get diseases",
+			"error": "Lấy danh sách bệnh thất bại",
 		})
 		return
 	}
@@ -161,7 +161,7 @@ func GetAllDiseasesHandler(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get diseases",
+			"error": "Lấy danh sách bệnh thất bại",
 		})
 		return
 	}
@@ -201,7 +201,7 @@ func GetDiseasesCountHandler(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get diseases count",
+			"error": "Lấy số lượng bệnh thất bại",
 		})
 		return
 	}
@@ -218,7 +218,7 @@ func UpdateDiseaseHandler(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Disease ID is required",
+			"error": "Cần có ID bệnh",
 		})
 		return
 	}
@@ -228,12 +228,12 @@ func UpdateDiseaseHandler(c *gin.Context) {
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusNotFound, gin.H{
-				"error": "Disease not found",
+				"error": "Không tìm thấy bệnh",
 			})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get disease",
+			"error": "Lấy thông tin bệnh thất bại",
 		})
 		return
 	}
@@ -241,7 +241,7 @@ func UpdateDiseaseHandler(c *gin.Context) {
 	var req UpdateDiseaseRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request format",
+			"error": "Định dạng yêu cầu không hợp lệ",
 		})
 		return
 	}
@@ -277,13 +277,13 @@ func UpdateDiseaseHandler(c *gin.Context) {
 	// Save updated disease
 	if err := UpdateDisease(disease); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to update disease",
+			"error": "Cập nhật bệnh thất bại",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Disease updated successfully",
+		"message": "Cập nhật bệnh thành công",
 		"data":    disease.ToDiseaseResponse(),
 	})
 }
@@ -293,7 +293,7 @@ func DeleteDiseaseHandler(c *gin.Context) {
 	ClassName := c.Param("ClassName")
 	if ClassName == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Disease ClassName is required",
+			"error": "Cần có tên lớp bệnh",
 		})
 		return
 	}
@@ -303,12 +303,12 @@ func DeleteDiseaseHandler(c *gin.Context) {
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusNotFound, gin.H{
-				"error": "Disease not found",
+				"error": "Không tìm thấy bệnh",
 			})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get disease",
+			"error": "Lấy thông tin bệnh thất bại",
 		})
 		return
 	}
@@ -316,13 +316,13 @@ func DeleteDiseaseHandler(c *gin.Context) {
 	// Delete disease
 	if err := DeleteDisease(ClassName); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to delete disease",
+			"error": "Xóa bệnh thất bại",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Disease deleted successfully",
+		"message": "Xóa bệnh thành công",
 	})
 }
 
@@ -331,7 +331,7 @@ func GetDiseaseByClassNameHandler(c *gin.Context) {
 	ClassName := c.Param("ClassName")
 	if ClassName == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Class name is required",
+			"error": "Cần có tên lớp",
 		})
 		return
 	}
@@ -340,12 +340,12 @@ func GetDiseaseByClassNameHandler(c *gin.Context) {
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusNotFound, gin.H{
-				"error": "Disease not found",
+				"error": "Không tìm thấy bệnh",
 			})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get disease",
+			"error": "Lấy thông tin bệnh thất bại",
 		})
 		return
 	}
@@ -361,7 +361,7 @@ func ImportDiseasesFromExcelHandler(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "No file uploaded",
+			"error": "Không có tệp được tải lên",
 		})
 		return
 	}
@@ -370,7 +370,7 @@ func ImportDiseasesFromExcelHandler(c *gin.Context) {
 	filename := strings.ToLower(file.Filename)
 	if !strings.HasSuffix(filename, ".xlsx") && !strings.HasSuffix(filename, ".csv") {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Only .xlsx and .csv files are supported",
+			"error": "Chỉ hỗ trợ tệp .xlsx và .csv",
 		})
 		return
 	}
@@ -379,7 +379,7 @@ func ImportDiseasesFromExcelHandler(c *gin.Context) {
 	src, err := file.Open()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to open file",
+			"error": "Mở tệp thất bại",
 		})
 		return
 	}
@@ -394,7 +394,7 @@ func ImportDiseasesFromExcelHandler(c *gin.Context) {
 		rows, err = readCSVFile(src)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": fmt.Sprintf("Failed to read CSV file: %v", err),
+				"error": fmt.Sprintf("Đọc tệp CSV thất bại: %v", err),
 			})
 			return
 		}
@@ -403,7 +403,7 @@ func ImportDiseasesFromExcelHandler(c *gin.Context) {
 		rows, err = readExcelFile(src)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": fmt.Sprintf("Failed to read Excel file: %v", err),
+				"error": fmt.Sprintf("Đọc tệp Excel thất bại: %v", err),
 			})
 			return
 		}
@@ -411,7 +411,7 @@ func ImportDiseasesFromExcelHandler(c *gin.Context) {
 
 	if len(rows) < 2 {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("%s file must have at least 2 rows (header + data)", fileType),
+			"error": fmt.Sprintf("Tệp %s phải có ít nhất 2 dòng (tiêu đề + dữ liệu)", fileType),
 		})
 		return
 	}
@@ -430,7 +430,7 @@ func ImportDiseasesFromExcelHandler(c *gin.Context) {
 		if len(row) < 7 {
 			errors = append(errors, ExcelImportError{
 				Row:   rowNumber,
-				Error: "Row must have at least 8 columns",
+				Error: "Dòng phải có ít nhất 8 cột",
 			})
 			continue
 		}
@@ -450,7 +450,7 @@ func ImportDiseasesFromExcelHandler(c *gin.Context) {
 		if excelRow.Name == "" {
 			errors = append(errors, ExcelImportError{
 				Row:   rowNumber,
-				Error: "Name is required",
+				Error: "Cần có tên",
 			})
 			continue
 		}
@@ -458,7 +458,7 @@ func ImportDiseasesFromExcelHandler(c *gin.Context) {
 		if excelRow.ClassName == "" {
 			errors = append(errors, ExcelImportError{
 				Row:   rowNumber,
-				Error: "Class name is required",
+				Error: "Cần có tên lớp",
 			})
 			continue
 		}
@@ -466,7 +466,7 @@ func ImportDiseasesFromExcelHandler(c *gin.Context) {
 		if excelRow.Type == "" {
 			errors = append(errors, ExcelImportError{
 				Row:   rowNumber,
-				Error: "Type is required",
+				Error: "Cần có loại",
 			})
 			continue
 		}
@@ -485,7 +485,7 @@ func ImportDiseasesFromExcelHandler(c *gin.Context) {
 			if err := UpdateDisease(existingDisease); err != nil {
 				errors = append(errors, ExcelImportError{
 					Row:   rowNumber,
-					Error: fmt.Sprintf("Failed to update disease: %v", err),
+					Error: fmt.Sprintf("Cập nhật bệnh thất bại: %v", err),
 				})
 				continue
 			}
@@ -509,7 +509,7 @@ func ImportDiseasesFromExcelHandler(c *gin.Context) {
 		if err := CreateDiseaseRecord(disease); err != nil {
 			errors = append(errors, ExcelImportError{
 				Row:   rowNumber,
-				Error: fmt.Sprintf("Failed to create disease: %v", err),
+				Error: fmt.Sprintf("Tạo bệnh thất bại: %v", err),
 			})
 			continue
 		}
@@ -530,7 +530,7 @@ func ImportDiseasesFromExcelHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": fmt.Sprintf("%s import completed", fileType),
+		"message": fmt.Sprintf("Nhập khẩu tệp %s hoàn tất", fileType),
 		"data":    response,
 	})
 }
