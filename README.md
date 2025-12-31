@@ -1,5 +1,7 @@
 # Plantheon Backend API
 
+<img width="200" height="200" alt="logo" src="https://github.com/user-attachments/assets/92e4733b-0978-4c3e-9bf0-d7bb6e7068a7" />
+
 > A comprehensive RESTful API for plant disease management and agricultural activity tracking, built with Go and the Gin framework.
 
 [![Go Version](https://img.shields.io/badge/Go-1.23.0-blue.svg)](https://golang.org/)
