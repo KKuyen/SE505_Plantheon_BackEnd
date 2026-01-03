@@ -579,3 +579,48 @@ func ResetPasswordWithOTPHandler(c *gin.Context) {
 		"message": "Đặt lại mật khẩu thành công",
 	})
 }
+
+// DeleteAccount allows users to delete their own account
+func DeleteAccount(c *gin.Context) {
+	user, exists := GetCurrentUser(c)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Không tìm thấy người dùng",
+		})
+		return
+	}
+
+	var req DeleteAccountRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Định dạng yêu cầu không hợp lệ",
+		})
+		return
+	}
+
+	// Verify password before deleting account
+	if !common.CheckPasswordHash(req.Password, user.Password) {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Mật khẩu không đúng",
+		})
+		return
+	}
+
+	// Delete the user account
+	if err := DeleteUser(user.ID); err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Không tìm thấy người dùng",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Xóa tài khoản thất bại",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Xóa tài khoản thành công",
+	})
+}

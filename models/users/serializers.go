@@ -90,3 +90,9 @@ type VerifyOTPResponse struct {
 	Message           string `json:"message"`
 	AttemptsRemaining *int   `json:"attempts_remaining,omitempty"`
 }
+
+// DeleteAccountRequest represents account deletion request
+type DeleteAccountRequest struct {
+	Password string `json:"password" binding:"required"`
+}
+

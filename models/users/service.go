@@ -89,14 +89,41 @@ func UpdateUser(user *User) error {
 	return service.db.Save(user).Error
 }
 
-// DeleteUser deletes user by ID
+// DeleteUser deletes user by ID and all related data (cascade delete)
+// This ensures GDPR compliance and Google Play data deletion requirements
 func DeleteUser(id string) error {
 	service := NewUserService()
-	result := service.db.Delete(&User{}, "id = ?", id)
-	if result.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
-	}
-	return result.Error
+	
+	// Start a transaction to ensure all deletes succeed or none do
+	return service.db.Transaction(func(tx *gorm.DB) error {
+		// 1. Delete all post likes by this user
+		tx.Exec("DELETE FROM post_likes WHERE user_id = ?", id)
+		
+		// 2. Delete all comment likes by this user
+		tx.Exec("DELETE FROM comment_likes WHERE user_id = ?", id)
+		
+		// 3. Delete all comments by this user
+		tx.Exec("DELETE FROM comments WHERE user_id = ?", id)
+		
+		// 4. Delete all posts by this user
+		tx.Exec("DELETE FROM posts WHERE user_id = ?", id)
+		
+		// 5. Delete all scan history by this user
+		tx.Exec("DELETE FROM scan_histories WHERE user_id = ?", id)
+		
+		// 6. Delete all complaints by this user
+		tx.Exec("DELETE FROM complaints WHERE user_id = ?", id)
+		
+		// 7. Delete all notifications for this user
+		tx.Exec("DELETE FROM noti WHERE user_id = ?", id)
+		
+		// 8. Finally, delete the user account
+		result := tx.Delete(&User{}, "id = ?", id)
+		if result.RowsAffected == 0 {
+			return gorm.ErrRecordNotFound
+		}
+		return result.Error
+	})
 }
 
 // DisableUser sets is_active to false for the given user ID

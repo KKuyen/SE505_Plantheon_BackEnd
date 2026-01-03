@@ -170,6 +170,7 @@ func main() {
 		{
 			userRoutes.GET("/profile", users.GetProfile)
 			userRoutes.PUT("/profile", users.UpdateProfile)
+			userRoutes.DELETE("/account", users.DeleteAccount)
 		}
 
 		// Admin-only user management routes
